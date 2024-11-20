@@ -2,72 +2,111 @@
 import { BotMessage } from '@/components/stocks'
 import { nanoid } from 'nanoid'
 
-export default async function useClaudeApi(content: string) {
-
+export default async function sendMessageToClaude(
+  content: string,
+  images?: string[],
+  pdfFiles: { name: string; text: string }[],
+  csvFiles: { name: string; text: string }[]
+) {
   'use server'
   
-  const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
-    You can ask follow-up questions to clarify the user's request and provide more accurate results.
+  // Prepare the messages array
+  const messages = [];
 
-    If the user mentions a main category (e.g., "Computer Science"), you MUST use the \`show_category_selection\` function to display its subcategories.
-    To do this, follow these steps:
-    1. Identify the main category mentioned by the user.
-    2. Look up the subcategories for that main category in the list below.
-    3. Call show_category_selection with these subcategories, using the main category as the title.
+  // Handle images if present
+  if (images?.length > 0) {
+    for (const image of images) {
+      // Remove data URL prefix if present
+      const imageData = image.replace(/^data:image\/[a-z]+;base64,/, "");
+      messages.push({
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: "image/jpeg",
+          data: imageData
+        }
+      });
+    }
+  }
 
-    Here are the main categories and their subcategories:
+  // Add main text content
+  messages.push({
+    type: "text",
+    text: content
+  });
 
-    Computer Science:
-    - Artificial Intelligence
-    - Computation and Language
-    ...
+  // Add PDF content if present
+  if (pdfFiles?.length > 0) {
+    const pdfContent = pdfFiles.map(pdf => 
+      `Document: ${pdf.name}\n${pdf.text}\n---`
+    ).join('\n\n');
+    
+    messages.push({
+      type: "text",
+      text: `PDF Contents:\n${pdfContent}`
+    });
+  }
 
-    Mathematics:
-    - Algebraic Geometry
-    - Algebraic Topology
-    ...
+  // Add CSV content if present
+  if (csvFiles?.length > 0) {
+    const csvContent = csvFiles.map(csv => 
+      `File: ${csv.name}\n${csv.text}\n---`
+    ).join('\n\n');
+    
+    messages.push({
+      type: "text",
+      text: `CSV Data:\n${csvContent}`
+    });
+  }
 
-    Physics:
-    - Accelerator Physics
-    - Applied Physics
-    ...
 
-    If you need to ask about a date range, use the \`show_date_range_selection\` function.
-    If you want to display research papers, use the \`show_research_papers\` function.
 
-    Besides that, you can also chat with users and provide information about scientific research and arXiv.`
-  
+  const systemPrompt = `
+  You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
+  You can ask follow-up questions to clarify the user's request and provide more accurate results.
+
+  Here are the main categories and their subcategories:
+  - Computer Science: Artificial Intelligence, Computation and Language...
+  - Mathematics: Algebraic Geometry, Algebraic Topology...
+  - Physics: Accelerator Physics, Applied Physics...
+  Besides that, you can also chat with users and provide information about scientific research and arXiv.`;
+
   try {
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.CLAUDE_API_KEY ,
+        'x-api-key': process.env.CLAUDE_API_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-3-sonnet-20240229',
         messages: [
-        {
-            role:"assistant",
-            content:systemPrompt
-        },
+          {
+            role: 'assistant',
+            content: systemPrompt
+          },
           {
             role: 'user',
             content: content
           }
         ],
         max_tokens: 4096,
-        temperature: 0.7,
+        temperature: 0.7
       })
     })
 
     if (!response.ok) {
-        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
-      }
+      throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
+    }
 
     const result = await response.json()
+    
+    // Make sure we're getting the correct part of the response
+    if (!result.content || !result.content[0] || !result.content[0].text) {
+      throw new Error('Invalid response format from Claude API');
+    }
+
     return {
       id: nanoid(),
       display: <BotMessage content={result.content[0].text} />
@@ -77,7 +116,7 @@ export default async function useClaudeApi(content: string) {
     console.error('Error:', error)
     return {
       id: nanoid(),
-      display: <BotMessage content="Error: Unable to get response" />
+      display: <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again." />
     }
   }
 }

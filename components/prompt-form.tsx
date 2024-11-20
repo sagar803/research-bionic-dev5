@@ -41,7 +41,7 @@ export function PromptForm({
   const [selectedModel, setSelectedModel] = React.useState('openai') 
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage , useClaudeApi , usePerplexityApi } = useActions()
+  const { submitUserMessage , sendMessageToClaude , sendMessageToPerplexity } = useActions()
 
   const [messages, setMessages] = useUIState<typeof AI>()
   const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
@@ -274,14 +274,22 @@ export function PromptForm({
       let responseMessage:any;
       switch (selectedModel) {
         case 'claude':
-          responseMessage = await useClaudeApi(
-           value
-          
+          responseMessage = await sendMessageToClaude(
+           value,
+           uploadedImages,
+           uploadedPdfFiles,
+           uploadingCSVFiles
          
           )
           break
         case 'perplexity':
-          responseMessage = await usePerplexityApi(value);
+          responseMessage = await sendMessageToPerplexity(
+            value,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles
+
+          );
           break
         case 'arxiv':
           responseMessage = await axios.post('/api/arxiv', payload)
