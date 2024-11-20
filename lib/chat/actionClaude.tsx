@@ -5,38 +5,57 @@ import { nanoid } from 'nanoid'
 export default async function sendMessageToClaude(
   content: string,
   images?: string[],
-  pdfFiles: { name: string; text: string }[],
-  csvFiles: { name: string; text: string }[]
+  pdfFiles: { name: string; text: string }[] = [],
+  csvFiles: { name: string; text: string }[] = []
 ) {
   'use server'
-  
-  // Prepare the messages array
+
   const messages = [];
 
-  // Handle images if present
   if (images?.length > 0) {
-    for (const image of images) {
-      // Remove data URL prefix if present
-      const imageData = image.replace(/^data:image\/[a-z]+;base64,/, "");
-      messages.push({
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: "image/jpeg",
-          data: imageData
+    for (const imageData of images) {
+      try {
+        let mediaType = 'image/jpeg'; // default
+        const match = imageData.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/);
+        
+        if (match) {
+          const detectedType = match[1].toLowerCase();
+          // Only allow supported formats
+          if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(detectedType)) {
+            mediaType = detectedType;
+          }
         }
-      });
+        // Remove the "data:image/jpeg;base64," prefix if present
+        const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+        
+        messages.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mediaType,
+            data: base64Data
+          }
+        });
+      } catch (error) {
+        console.error(`Error processing image:`, error);
+        messages.push({
+          type: "text",
+          text: `Failed to process an image`
+        });
+      }
     }
   }
 
   // Add main text content
-  messages.push({
-    type: "text",
-    text: content
-  });
+  if (content) {
+    messages.push({
+      type: "text",
+      text: content
+    });
+  }
 
   // Add PDF content if present
-  if (pdfFiles?.length > 0) {
+  if (pdfFiles.length > 0) {
     const pdfContent = pdfFiles.map(pdf => 
       `Document: ${pdf.name}\n${pdf.text}\n---`
     ).join('\n\n');
@@ -48,7 +67,7 @@ export default async function sendMessageToClaude(
   }
 
   // Add CSV content if present
-  if (csvFiles?.length > 0) {
+  if (csvFiles.length > 0) {
     const csvContent = csvFiles.map(csv => 
       `File: ${csv.name}\n${csv.text}\n---`
     ).join('\n\n');
@@ -58,7 +77,6 @@ export default async function sendMessageToClaude(
       text: `CSV Data:\n${csvContent}`
     });
   }
-
 
 
   const systemPrompt = `
@@ -88,7 +106,7 @@ export default async function sendMessageToClaude(
           },
           {
             role: 'user',
-            content: content
+            content: messages 
           }
         ],
         max_tokens: 4096,
@@ -97,13 +115,15 @@ export default async function sendMessageToClaude(
     })
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
       throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json()
     
-    // Make sure we're getting the correct part of the response
-    if (!result.content || !result.content[0] || !result.content[0].text) {
+    if (!result.content || result.content.length === 0 || typeof result.content[0].text !== 'string') {
+      console.error('Invalid response format from Claude API:', result);
       throw new Error('Invalid response format from Claude API');
     }
 
@@ -116,7 +136,7 @@ export default async function sendMessageToClaude(
     console.error('Error:', error)
     return {
       id: nanoid(),
-      display: <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again." />
+      display: <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again or contact support if the issue persists." />
     }
   }
 }

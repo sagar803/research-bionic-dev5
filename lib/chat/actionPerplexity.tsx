@@ -10,28 +10,74 @@ export default async function sendMessageToPerplexity(
   ) {
     'use server'
   
-    // Prepare content with all file data
-    let fullContent = content;
-  
-    // Add PDF content if any
-    if (pdfFiles && pdfFiles.length > 0) {
-      fullContent += "\n\nPDF Contents:\n" + pdfFiles.map(pdf => 
-        `Document ${pdf.name}:\n${pdf.text}`
-      ).join('\n\n');
-    }
-  
-    // Add CSV content if any
-    if (csvFiles && csvFiles.length > 0) {
-      fullContent += "\n\nCSV Data:\n" + csvFiles.map(csv =>
-        `File ${csv.name}:\n${csv.text}`
-      ).join('\n\n');
-    }
-  
-    // Add image references if any
-    if (images && images.length > 0) {
-      fullContent += "\n\nImage References:\n" + images.length + " images attached";
-    }
+    const messages = [];
 
+    if (images?.length > 0) {
+      for (const imageData of images) {
+        try {
+          let mediaType = 'image/jpeg'; // default
+          const match = imageData.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/);
+          
+          if (match) {
+            const detectedType = match[1].toLowerCase();
+            // Only allow supported formats
+            if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(detectedType)) {
+              mediaType = detectedType;
+            }
+          }
+          // Remove the "data:image/jpeg;base64," prefix if present
+          const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+          
+          messages.push({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: mediaType,
+              data: base64Data
+            }
+          });
+        } catch (error) {
+          console.error(`Error processing image:`, error);
+          messages.push({
+            type: "text",
+            text: `Failed to process an image`
+          });
+        }
+      }
+    }
+  
+    // Add main text content
+    if (content) {
+      messages.push({
+        type: "text",
+        text: content
+      });
+    }
+  
+    // Add PDF content if present
+    if (pdfFiles.length > 0) {
+      const pdfContent = pdfFiles.map(pdf => 
+        `Document: ${pdf.name}\n${pdf.text}\n---`
+      ).join('\n\n');
+      
+      messages.push({
+        type: "text",
+        text: `PDF Contents:\n${pdfContent}`
+      });
+    }
+  
+    // Add CSV content if present
+    if (csvFiles.length > 0) {
+      const csvContent = csvFiles.map(csv => 
+        `File: ${csv.name}\n${csv.text}\n---`
+      ).join('\n\n');
+      
+      messages.push({
+        type: "text",
+        text: `CSV Data:\n${csvContent}`
+      });
+    }
+  
     
   
   const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
@@ -81,7 +127,7 @@ export default async function sendMessageToPerplexity(
           },
           {
             role: 'user',
-            content: content
+            content: messages
           }
         ],
         stream: false,
