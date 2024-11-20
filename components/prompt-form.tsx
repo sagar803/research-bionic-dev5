@@ -291,9 +291,9 @@ export function PromptForm({
         value,
         model,
         uploadedImages,
-        uploadedPdfFiles,
+        uploadedPdfFiles, 
         uploadingCSVFiles
-      )}
+      )} 
       console.log(uploadingCSVFiles)
       setUploadedImages([])
       setUploadedPdfFiles([])
