@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
+import { Send, Brain, Bot, Lightbulb, FileText } from 'lucide-react'
 import { type AI } from '@/lib/chat/actions'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { useActions, useUIState } from 'ai/rsc'
@@ -37,10 +38,11 @@ export function PromptForm({
 
   // @ts-ignore
   const {uploadedPdfUrls, setUploadedUrls} = useGlobalState()
-
+  const [selectedModel, setSelectedModel] = React.useState('openai') 
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage } = useActions()
+  const { submitUserMessage , useClaudeApi , usePerplexityApi } = useActions()
+
   const [messages, setMessages] = useUIState<typeof AI>()
   const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
 
@@ -194,6 +196,10 @@ export function PromptForm({
     }
   }
 
+  const handleModelSelect = (modelName: string) => {
+    setSelectedModel(modelName)
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -257,7 +263,7 @@ export function PromptForm({
       // Create the payload with the compressed and encoded images
       const payload = {
         message: value,
-        model: model,
+        model: selectedModel, 
         images: uploadedImages,
         file: uploadedPdfFiles,
         csv: uploadingCSVFiles
@@ -265,14 +271,29 @@ export function PromptForm({
 
       // Log the JSON payload
       console.log('Sending JSON payload:', JSON.stringify(payload))
-
-      const responseMessage = await submitUserMessage(
+      let responseMessage:any;
+      switch (selectedModel) {
+        case 'claude':
+          responseMessage = await useClaudeApi(
+           value
+          
+         
+          )
+          break
+        case 'perplexity':
+          responseMessage = await usePerplexityApi(value);
+          break
+        case 'arxiv':
+          responseMessage = await axios.post('/api/arxiv', payload)
+          break
+        default:
+      responseMessage = await submitUserMessage(
         value,
         model,
         uploadedImages,
-        uploadedPdfFiles,
+        uploadedPdfFiles, 
         uploadingCSVFiles
-      )
+      )} 
       console.log(uploadingCSVFiles)
       setUploadedImages([])
       setUploadedPdfFiles([])
@@ -454,7 +475,32 @@ export function PromptForm({
         </Tooltip>
       {uploadedPdfUrls && <PdfReader pdfUrls={uploadedPdfUrls} />}
       </div>
-
+      <div className="flex space-x-2 mx-8 my-3">
+          <Button  className={`flex-1 py-4 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('openai')}>
+            <div className="flex flex-col items-center">
+              <Brain className="h-3 w-3 mb-1 " />
+              <span className="text-xs">OpenAI</span>
+            </div>
+          </Button>
+          <Button   className={`flex-1 py-4 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
+            <div className="flex flex-col items-center">
+              <Bot className="h-3 w-3 mb-1" />
+              <span className="text-xs">Claude</span>
+            </div>
+          </Button>
+          <Button className={`flex-1 py-4 ${selectedModel === 'perplexity' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('perplexity')}>
+            <div className="flex flex-col items-center">
+              <Lightbulb className="h-3 w-3 mb-1" />
+              <span className="text-xs">Perplexity</span>
+            </div>
+          </Button>
+          <Button className={`flex-1 py-4 ${selectedModel === 'arxiv' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('arxiv')}>
+            <div className="flex flex-col items-center">
+              <FileText className="h-3 w-3 mb-1" />
+              <span className="text-xs">arXiv</span>
+            </div>
+          </Button>
+        </div>
       <p className="text-xs text-gray-300 ml-4 transition-opacity duration-300 ease-in-out text-center mt-2">
         {'Models may make mistakes, always validate your work'}
       </p>
