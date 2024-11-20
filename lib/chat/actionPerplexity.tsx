@@ -2,8 +2,7 @@
 import { BotMessage } from '@/components/stocks'
 import { nanoid } from 'nanoid'
 
-export default async function useClaudeApi(content: string) {
-
+export default async function usePerplexityApi(content: string) {
   'use server'
   
   const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
@@ -38,46 +37,48 @@ export default async function useClaudeApi(content: string) {
     Besides that, you can also chat with users and provide information about scientific research and arXiv.`
   
   try {
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.CLAUDE_API_KEY ,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'llama-3.1-sonar-large-128k-online',
         messages: [
-        {
-            role:"assistant",
-            content:systemPrompt
-        },
+          {
+            role: 'system',
+            content: systemPrompt
+          },
           {
             role: 'user',
             content: content
           }
         ],
+        stream: false,
         max_tokens: 4096,
-        temperature: 0.7,
+        temperature: 0.7
       })
-    })
+    });
 
     if (!response.ok) {
-        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
-      }
+      console.error('API Error:', response.status);
+      throw new Error('Failed to get response');
+    }
 
-    const result = await response.json()
+    const result = await response.json();
+    const messageContent = result.choices[0].message.content;
+
     return {
       id: nanoid(),
-      display: <BotMessage content={result.content[0].text} />
+      display: <BotMessage content={messageContent} />
     }
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Perplexity API Error:', error);
     return {
       id: nanoid(),
-      display: <BotMessage content="Error: Unable to get response" />
+      display: <BotMessage content="I apologize, but I'm having trouble connecting right now. Please try again." />
     }
   }
 }
