@@ -11,7 +11,7 @@ import {
 } from 'ai/rsc'
 import { openai } from '@ai-sdk/openai'
 import { DOMParser } from '@xmldom/xmldom'
-import useClaudeApi from './actionClaude'
+import sendMessageToClaude from './actionClaude'
 import {
   spinner,
   BotCard,
@@ -35,7 +35,7 @@ import { Chat, Message } from '@/lib/types'
 import { auth } from '@/auth'
 import axios from 'axios'
 import { error } from 'console'
-import usePerplexityApi from './actionPerplexity'
+import sendMessageToPerplexity from './actionPerplexity'
 
 
 export const maxDuration = 300;
@@ -662,8 +662,8 @@ export type UIState = {
 export const AI = createAI<AIState, UIState>({
   actions: {
     submitUserMessage,
-    useClaudeApi,
-    usePerplexityApi
+    sendMessageToClaude,
+    sendMessageToPerplexity
   },
   initialUIState: [],
   initialAIState: { chatId: nanoid(), messages: [] },

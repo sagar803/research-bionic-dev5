@@ -2,8 +2,37 @@
 import { BotMessage } from '@/components/stocks'
 import { nanoid } from 'nanoid'
 
-export default async function usePerplexityApi(content: string) {
-  'use server'
+export default async function sendMessageToPerplexity(
+    content: string,
+    images?: string[],
+    pdfFiles: { name: string; text: string }[],
+    csvFiles: { name: string; text: string }[]
+  ) {
+    'use server'
+  
+    // Prepare content with all file data
+    let fullContent = content;
+  
+    // Add PDF content if any
+    if (pdfFiles && pdfFiles.length > 0) {
+      fullContent += "\n\nPDF Contents:\n" + pdfFiles.map(pdf => 
+        `Document ${pdf.name}:\n${pdf.text}`
+      ).join('\n\n');
+    }
+  
+    // Add CSV content if any
+    if (csvFiles && csvFiles.length > 0) {
+      fullContent += "\n\nCSV Data:\n" + csvFiles.map(csv =>
+        `File ${csv.name}:\n${csv.text}`
+      ).join('\n\n');
+    }
+  
+    // Add image references if any
+    if (images && images.length > 0) {
+      fullContent += "\n\nImage References:\n" + images.length + " images attached";
+    }
+
+    
   
   const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
     You can ask follow-up questions to clarify the user's request and provide more accurate results.
