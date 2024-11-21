@@ -12,29 +12,27 @@ import remarkMath from 'remark-math'
 import { StreamableValue } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 import { useEffect, useState } from 'react'
-import ReactMarkdown from 'react-markdown';
-
+import ReactMarkdown from 'react-markdown'
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-
+  AccordionTrigger
+} from '@/components/ui/accordion'
 
 // Different types of message bubbles.
 export function UserMessage({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="group relative flex items-center justify-end md:-ml-12">
-            <div className="mr-4 flex-1 space-y-2 overflow-hidden pr-2 text-right flex justify-end">
-                {children}
-            </div>
-            <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-                <IconUser />
-            </div>
-        </div>
-    );
+  return (
+    <div className="group relative flex items-center justify-end md:-ml-12">
+      <div className="mr-4 flex-1 space-y-2 overflow-hidden pr-2 text-right flex justify-end">
+        {children}
+      </div>
+      <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
+        <IconUser />
+      </div>
+    </div>
+  )
 }
 
 export function BotMessagePer({
@@ -46,31 +44,34 @@ export function BotMessagePer({
   className?: string
   resultlinks?: string[] // Array of URLs
 }) {
-  const text = useStreamableText(content);
+  const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
-    return text.replace(/\[(\d+)]/g, (match:any, index:any) => {
-      const urlIndex = parseInt(index, 10) - 1; // Convert citation number to zero-based index
+    return text.replace(/\[(\d+)]/g, (match: any, index: any) => {
+      const urlIndex = parseInt(index, 10) - 1 // Convert citation number to zero-based index
       if (links && links[urlIndex]) {
-        return `[${index}](#${links[urlIndex]})`; // Markdown format for links
+        return `[${index}](#${links[urlIndex]})` // Markdown format for links
       }
-      return match; // Keep the original text if no matching link
-    });
-  };
+      return match // Keep the original text if no matching link
+    })
+  }
 
   // Parse and prepare the content
-  const parsedContent = parseReferences(content, resultlinks);
+  const parsedContent = parseReferences(content, resultlinks)
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       {/* Bot Icon */}
       <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm  p-1 w-6 h-6">
-        <img className="object-contain w-8 h-8" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="object-contain w-8 h-8"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
 
       {/* Render Markdown Content */}
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
         <ReactMarkdown
-          children={parsedContent}
           remarkPlugins={[remarkGfm]}
           components={{
             a: ({ href, children }) => (
@@ -84,35 +85,37 @@ export function BotMessagePer({
               </a>
             )
           }}
-        />
-          {resultlinks && (
-            <div className=''>
-               <h2>Sources</h2>
-               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-  {resultlinks.map((url, index) => (
-    <div
-      key={index}
-      className="p-3 border rounded-xl shadow-md dark:bg-gray-800 dark:text-white flex flex-col justify-between flex-1 min-h-[130px] min-w-[120px] max-w-[300px] "
-    >
-      <div className="font-semibold">Related Article on Best Practices {index + 1}</div>
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-500 hover:underline text-[12px] cursor-pointer break-words"
-      >
-           {url.length > 25 ? `${url.slice(0, 25)}...` : url}
-      </a>
-    </div>
-  ))}
-</div>
-
+        >
+          {parsedContent}
+        </ReactMarkdown>
+        {resultlinks && (
+          <div className="">
+            <h2>Sources</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+              {resultlinks.map((url, index) => (
+                <div
+                  key={index}
+                  className="p-3 border rounded-xl shadow-md dark:bg-gray-800 dark:text-white flex flex-col justify-between flex-1 min-h-[130px] min-w-[120px] max-w-[300px] "
+                >
+                  <div className="font-semibold">
+                    Related Article on Best Practices {index + 1}
+                  </div>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline text-[12px] cursor-pointer break-words"
+                  >
+                    {url.length > 25 ? `${url.slice(0, 25)}...` : url}
+                  </a>
+                </div>
+              ))}
             </div>
-        
+          </div>
         )}
       </div>
     </div>
-  );
+  )
 }
 
 
@@ -128,19 +131,23 @@ export function BotMessage({
   const text = useStreamableText(content)
   const parseReferences = (text: string, links?: string[]) => {
     return text.replace(/\[(\d+)]/g, (match, index) => {
-      const urlIndex = parseInt(index, 10) - 1; // Convert citation number to zero-based index
+      const urlIndex = parseInt(index, 10) - 1 // Convert citation number to zero-based index
       if (links && links[urlIndex]) {
-        return `<a href="${links[urlIndex]}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline">${match}</a>`;
+        return `<a href="${links[urlIndex]}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline">${match}</a>`
       }
-      return match; // Keep the original text if no matching link
-    });
-  };
+      return match // Keep the original text if no matching link
+    })
+  }
 
-  const parsedText = parseReferences(text, resultlinks);
+  const parsedText = parseReferences(text, resultlinks)
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         <MemoizedReactMarkdown
@@ -180,9 +187,7 @@ export function BotMessage({
                 />
               )
             }
-            
           }}
-          
         >
           {text}
         </MemoizedReactMarkdown>
@@ -191,54 +196,66 @@ export function BotMessage({
   )
 }
 
-
-export function ImageDisplay({imageId, className}: {imageId?:string, className?:string}) {
-  const [url, setUrl] = useState<string|null>(null)
+export function ImageDisplay({
+  imageId,
+  className
+}: {
+  imageId?: string
+  className?: string
+}) {
+  const [url, setUrl] = useState<string | null>(null)
   useEffect(() => {
     async function getImage() {
       try {
-        
-      const imageRes = await fetch(
-        `/api/graph-image?fileId=${imageId}`
-      )
+        const imageRes = await fetch(`/api/graph-image?fileId=${imageId}`)
 
-      const blob = await imageRes.blob()
-      const image =  URL.createObjectURL(blob)
-      setUrl(image)
-
+        const blob = await imageRes.blob()
+        const image = URL.createObjectURL(blob)
+        setUrl(image)
       } catch (error) {
-        console.log("error", error)
+        console.log('error', error)
       }
     }
-    if(imageId) {
+    if (imageId) {
       getImage()
     }
   }, [])
   return (
-    <div className={cn('group relative flex items-start md:-ml-12 mt-6', className)}>
-     {url && (<>
-      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-      <img 
-          src={url}
-          alt=""
-        />
-      </div> </>)}
+    <div
+      className={cn(
+        'group relative flex items-start md:-ml-12 mt-6',
+        className
+      )}
+    >
+      {url && (
+        <>
+          <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
+            <img src={url} alt="" />
+          </div>{' '}
+        </>
+      )}
     </div>
   )
 }
 
-
 // Tool result components
-export function ToolImages({content, className}: 
-  {  content: string | StreamableValue<string>, className?:string})
-    {
-
+export function ToolImages({
+  content,
+  className
+}: {
+  content: string | StreamableValue<string>
+  className?: string
+}) {
   const text = useStreamableText(content)
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         <MemoizedReactMarkdown
@@ -280,10 +297,11 @@ export function ToolImages({content, className}:
             },
             a({ href, children, ...props }) {
               return (
-              <a href={href} target='_blank'>
-                {children}
-              </a>
-            )}
+                <a href={href} target="_blank">
+                  {children}
+                </a>
+              )
+            }
           }}
         >
           {text}
@@ -298,55 +316,80 @@ export function ToolMessage({
   className,
   toolCallMeta
 }: {
-  content: string | StreamableValue<string>,
-  toolCallMeta : {concisedQuery: string, linksArray: []},
+  content: string | StreamableValue<string>
+  toolCallMeta: { concisedQuery: string; linksArray: [] }
   className?: string
 }) {
   const text = useStreamableText(content)
 
   const [dropdown, setDropdown] = useState(false)
-  
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        {
-          toolCallMeta.concisedQuery && toolCallMeta.concisedQuery.length > 0 && (
+        {toolCallMeta.concisedQuery &&
+          toolCallMeta.concisedQuery.length > 0 && (
             <>
               <Accordion type="single" collapsible>
                 <AccordionItem value="item-1">
-                  <AccordionTrigger className='flex justify-start hover:no-underline text-gray-500  cursor-pointer py-[2px]'>
+                  <AccordionTrigger className="flex justify-start hover:no-underline text-gray-500  cursor-pointer py-[2px]">
                     Searched {toolCallMeta.linksArray.length} sites
                   </AccordionTrigger>
-                  <div className='h-2'></div>
-                  <AccordionContent className='text-gray-500 border border-gray-300 rounded-md shadow-lg pb-0'>
-                        <a href={`https://www.bing.com/search?q=${encodeURIComponent(toolCallMeta.concisedQuery)}`} target='_blank' className='border-b border-gray-300 flex text-sm text-gray-500 hover:bg-gray-100 transition p-4 rounded-sm ' rel="noopener noreferrer">
-                        <img className="w-6 h-6 object-contain mx-2 scale-75" src="/images/search.png" alt="gemini logo" />
-                        <div className='flex flex-col'>
-                          <span className='text-sm'>{toolCallMeta.concisedQuery}</span>
-                          <span className='text-xs'>bing.com</span>
-                        </div>
-                        </a>
-                        {toolCallMeta.linksArray.map((linkMeta: {link: string, name: string}, index) => {
-                          return (
-                            <a href={linkMeta.link} key={index} className='border-b border-gray-300 flex text-sm text-gray-500 hover:bg-gray-100 transition-transform p-4 rounded-sm' target="_blank" rel="noopener noreferrer">
-                              <img className="w-6 h-6 object-contain mx-2 scale-75" src="/images/search.png" alt="gemini logo" />
-                              <div className='flex flex-col'>
-                                <span className='text-sm'>{linkMeta.name}</span>
-                                <span className='text-xs'>{linkMeta.link}</span>
-                              </div>
-                            </a>
-                          );
-                        })}
+                  <div className="h-2"></div>
+                  <AccordionContent className="text-gray-500 border border-gray-300 rounded-md shadow-lg pb-0">
+                    <a
+                      href={`https://www.bing.com/search?q=${encodeURIComponent(toolCallMeta.concisedQuery)}`}
+                      target="_blank"
+                      className="border-b border-gray-300 flex text-sm text-gray-500 hover:bg-gray-100 transition p-4 rounded-sm "
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        className="w-6 h-6 object-contain mx-2 scale-75"
+                        src="/images/search.png"
+                        alt="gemini logo"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm">
+                          {toolCallMeta.concisedQuery}
+                        </span>
+                        <span className="text-xs">bing.com</span>
+                      </div>
+                    </a>
+                    {toolCallMeta.linksArray.map(
+                      (linkMeta: { link: string; name: string }, index) => {
+                        return (
+                          <a
+                            href={linkMeta.link}
+                            key={index}
+                            className="border-b border-gray-300 flex text-sm text-gray-500 hover:bg-gray-100 transition-transform p-4 rounded-sm"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <img
+                              className="w-6 h-6 object-contain mx-2 scale-75"
+                              src="/images/search.png"
+                              alt="gemini logo"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm">{linkMeta.name}</span>
+                              <span className="text-xs">{linkMeta.link}</span>
+                            </div>
+                          </a>
+                        )
+                      }
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
             </>
-          )
-        }
+          )}
         <MemoizedReactMarkdown
           className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
           remarkPlugins={[remarkGfm, remarkMath]}
@@ -386,10 +429,11 @@ export function ToolMessage({
             },
             a({ href, children, ...props }) {
               return (
-              <a href={href} target='_blank'>
-                {children}
-              </a>
-            )}
+                <a href={href} target="_blank">
+                  {children}
+                </a>
+              )
+            }
           }}
         >
           {text}
@@ -414,7 +458,11 @@ export function BotCard({
           !showAvatar && 'invisible'
         )}
       >
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 pl-2">{children}</div>
     </div>
@@ -438,8 +486,8 @@ export function ArxivToolMessage({
   className,
   query
 }: {
-  content: string | StreamableValue<string>,
-  query : string,
+  content: string | StreamableValue<string>
+  query: string
   className?: string
 }) {
   const text = useStreamableText(content)
@@ -447,17 +495,29 @@ export function ArxivToolMessage({
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         {query && (
-          <a href='https://arxiv.org/' target='_blank' className='cursor-pointer flex justify-between items-center px-4 py-4 border border-gray-200 rounded-lg w-[98%] min-h-12 text-gray-500'>
-            <div className='flex'>
-              <img className="mx-1 w-6 h-6 object-contain scale-75" src="/images/search.png" alt="gemini logo" />
+          <a
+            href="https://arxiv.org/"
+            target="_blank"
+            className="cursor-pointer flex justify-between items-center px-4 py-4 border border-gray-200 rounded-lg w-[98%] min-h-12 text-gray-500"
+          >
+            <div className="flex">
+              <img
+                className="mx-1 w-6 h-6 object-contain scale-75"
+                src="/images/search.png"
+                alt="gemini logo"
+              />
               <p>{query}</p>
             </div>
-            <div className='text-xs flex flex-col justify-end text-right'>
-              <p className='border-b border-gray-200'>arXiv.org</p>
+            <div className="text-xs flex flex-col justify-end text-right">
+              <p className="border-b border-gray-200">arXiv.org</p>
               <p>Free&nbsp;scholarly&nbsp;repository</p>
             </div>
           </a>
@@ -501,10 +561,11 @@ export function ArxivToolMessage({
             },
             a({ href, children, ...props }) {
               return (
-              <a href={href} target='_blank'>
-                {children}
-              </a>
-            )}
+                <a href={href} target="_blank">
+                  {children}
+                </a>
+              )
+            }
           }}
         >
           {text}
@@ -514,14 +575,16 @@ export function ArxivToolMessage({
   )
 }
 
-
-
 //Tool loading components
 export function SpinnerMessage() {
   return (
     <div className="group relative flex items-start md:-ml-12">
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 h-[24px] flex flex-row items-center flex-1 space-y-2 overflow-hidden px-1">
         {spinner}
@@ -530,28 +593,46 @@ export function SpinnerMessage() {
   )
 }
 
-interface ToolLoadingAnimateProps extends React.PropsWithChildren<{}> {searchQuery?: string;}
-export function ToolLoadingAnimate({ children, searchQuery }: ToolLoadingAnimateProps) {
+interface ToolLoadingAnimateProps extends React.PropsWithChildren<{}> {
+  searchQuery?: string
+}
+export function ToolLoadingAnimate({
+  children,
+  searchQuery
+}: ToolLoadingAnimateProps) {
   return (
     <div className={cn('group relative flex items-start md:-ml-12')}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        <div className="animate-pulse">{children} {searchQuery && `("${searchQuery}")`}</div>
+        <div className="animate-pulse">
+          {children} {searchQuery && `("${searchQuery}")`}
+        </div>
       </div>
     </div>
   )
 }
 
-export function ToolCallLoading({concisedQuery} : {concisedQuery: String}) {
+export function ToolCallLoading({ concisedQuery }: { concisedQuery: String }) {
   return (
     <div className={cn('group relative flex items-start md:-ml-12')}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        <div className="animate-pulse">Searching the web for {concisedQuery.length > 0 ? `"${concisedQuery}"` : "result"}</div>  
+        <div className="animate-pulse">
+          Searching the web for{' '}
+          {concisedQuery.length > 0 ? `"${concisedQuery}"` : 'result'}
+        </div>
       </div>
     </div>
   )
@@ -561,10 +642,14 @@ export function ToolImageLoading() {
   return (
     <div className={cn('group relative flex items-start md:-ml-12')}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        <div className="animate-pulse">Generating images ...</div>  
+        <div className="animate-pulse">Generating images ...</div>
       </div>
     </div>
   )
@@ -574,17 +659,18 @@ export function ToolDataAgentLoading() {
   return (
     <div className={cn('group relative flex items-start md:-ml-12')}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+        <img
+          className="size-6 object-contain"
+          src="/images/gemini.png"
+          alt="gemini logo"
+        />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        <div className="animate-pulse">Analyzing The Data ...</div>  
+        <div className="animate-pulse">Analyzing The Data ...</div>
       </div>
     </div>
   )
 }
-
-
-
 
 /*
 export function ToolMessage({
