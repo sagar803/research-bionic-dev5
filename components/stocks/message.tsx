@@ -253,7 +253,7 @@ export function ToolImages({
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+          src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -329,7 +329,7 @@ export function ToolMessage({
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+            src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -460,7 +460,7 @@ export function BotCard({
       >
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+            src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -497,7 +497,7 @@ export function ArxivToolMessage({
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+           src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -582,7 +582,7 @@ export function SpinnerMessage() {
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+            src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -605,7 +605,7 @@ export function ToolLoadingAnimate({
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+           src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -624,7 +624,7 @@ export function ToolCallLoading({ concisedQuery }: { concisedQuery: String }) {
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+            src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -644,7 +644,7 @@ export function ToolImageLoading() {
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+           src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -661,7 +661,7 @@ export function ToolDataAgentLoading() {
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+            src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
