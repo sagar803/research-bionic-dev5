@@ -140,6 +140,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
       >
         {value}
       </SyntaxHighlighter>
+
     </div>
   )
 })

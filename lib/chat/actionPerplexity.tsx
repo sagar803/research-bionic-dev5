@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { BotMessage } from '@/components/stocks'
+import { BotMessagePer } from '@/components/stocks/message';
 import { nanoid } from 'nanoid'
 
 export default async function sendMessageToPerplexity(
@@ -12,20 +13,19 @@ export default async function sendMessageToPerplexity(
   
     const messages = [];
 
+    // Image processing code remains the same
     if (images?.length > 0) {
       for (const imageData of images) {
         try {
-          let mediaType = 'image/jpeg'; // default
+          let mediaType = 'image/jpeg';
           const match = imageData.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/);
           
           if (match) {
             const detectedType = match[1].toLowerCase();
-            // Only allow supported formats
             if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(detectedType)) {
               mediaType = detectedType;
             }
           }
-          // Remove the "data:image/jpeg;base64," prefix if present
           const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
           
           messages.push({
@@ -45,8 +45,8 @@ export default async function sendMessageToPerplexity(
         }
       }
     }
-  
-    // Add main text content
+
+    // Regular content handling remains the same
     if (content) {
       messages.push({
         type: "text",
@@ -54,7 +54,7 @@ export default async function sendMessageToPerplexity(
       });
     }
   
-    // Add PDF content if present
+    // PDF and CSV handling remains the same
     if (pdfFiles.length > 0) {
       const pdfContent = pdfFiles.map(pdf => 
         `Document: ${pdf.name}\n${pdf.text}\n---`
@@ -66,7 +66,6 @@ export default async function sendMessageToPerplexity(
       });
     }
   
-    // Add CSV content if present
     if (csvFiles.length > 0) {
       const csvContent = csvFiles.map(csv => 
         `File: ${csv.name}\n${csv.text}\n---`
@@ -78,19 +77,15 @@ export default async function sendMessageToPerplexity(
       });
     }
   
-    
-  
-  const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
-    You can ask follow-up questions to clarify the user's request and provide more accurate results.
-
-    If the user mentions a main category (e.g., "Computer Science"), you MUST use the \`show_category_selection\` function to display its subcategories.
-    To do this, follow these steps:
+    const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
+        Function Usage Rules:
+    If the user mentions a main category (e.g., "Computer Science"), use the \`show_category_selection\` function to display its subcategories.
+    To do this:
     1. Identify the main category mentioned by the user.
     2. Look up the subcategories for that main category in the list below.
     3. Call show_category_selection with these subcategories, using the main category as the title.
 
-    Here are the main categories and their subcategories:
-
+    Categories and Subcategories:
     Computer Science:
     - Artificial Intelligence
     - Computation and Language
@@ -106,10 +101,11 @@ export default async function sendMessageToPerplexity(
     - Applied Physics
     ...
 
-    If you need to ask about a date range, use the \`show_date_range_selection\` function.
-    If you want to display research papers, use the \`show_research_papers\` function.
-
-    Besides that, you can also chat with users and provide information about scientific research and arXiv.`
+    Additional Functions:
+    - Use \`show_date_range_selection\` for date range queries
+    - Use \`show_research_papers\` to display research papers
+    
+    You can also provide general information about scientific research and arXiv.`
   
   try {
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -119,7 +115,7 @@ export default async function sendMessageToPerplexity(
         'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-large-128k-online',
+        model: 'llama-3.1-sonar-small-128k-online',
         messages: [
           {
             role: 'system',
@@ -142,11 +138,12 @@ export default async function sendMessageToPerplexity(
     }
 
     const result = await response.json();
-    const messageContent = result.choices[0].message.content;
 
+    const messageContent = result.choices[0].message.content;
+     const resultlinks = result?.citations 
     return {
       id: nanoid(),
-      display: <BotMessage content={messageContent} />
+      display: <BotMessagePer content={messageContent} resultlinks={resultlinks}/>
     }
 
   } catch (error) {
