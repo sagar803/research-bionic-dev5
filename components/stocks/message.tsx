@@ -63,8 +63,8 @@ export function BotMessagePer({
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       {/* Bot Icon */}
-      <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
-        <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+      <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm  p-1 w-6 h-6">
+        <img className="object-contain w-8 h-8" src="/images/gemini.png" alt="gemini logo" />
       </div>
 
       {/* Render Markdown Content */}
@@ -85,6 +85,31 @@ export function BotMessagePer({
             )
           }}
         />
+          {resultlinks && (
+            <div className=''>
+               <h2>Sources</h2>
+               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+  {resultlinks.map((url, index) => (
+    <div
+      key={index}
+      className="p-3 border rounded-xl shadow-md dark:bg-gray-800 dark:text-white flex flex-col justify-between flex-1 min-h-[130px] min-w-[120px] max-w-[300px] "
+    >
+      <div className="font-semibold">Related Article on Best Practices {index + 1}</div>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-500 hover:underline text-[12px] cursor-pointer break-words"
+      >
+           {url.length > 25 ? `${url.slice(0, 25)}...` : url}
+      </a>
+    </div>
+  ))}
+</div>
+
+            </div>
+        
+        )}
       </div>
     </div>
   );
