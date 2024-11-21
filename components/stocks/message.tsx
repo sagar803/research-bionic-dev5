@@ -12,6 +12,8 @@ import remarkMath from 'remark-math'
 import { StreamableValue } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 import { useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown';
+
 
 import {
   Accordion,
@@ -45,48 +47,45 @@ export function BotMessagePer({
   resultlinks?: string[] // Array of URLs
 }) {
   const text = useStreamableText(content);
-
-  // Helper function to replace citations like [3] with clickable links
-  const parseReferences = (text: string, links?: string[]) => {
-    return text.replace(/\[(\d+)]/g, (match, index) => {
+  const parseReferences = (text: any, links?: string[]) => {
+    return text.replace(/\[(\d+)]/g, (match:any, index:any) => {
       const urlIndex = parseInt(index, 10) - 1; // Convert citation number to zero-based index
       if (links && links[urlIndex]) {
-        return `<a href="${links[urlIndex]}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline cursor-pointer">${match}</a>`;
+        return `[${index}](#${links[urlIndex]})`; // Markdown format for links
       }
       return match; // Keep the original text if no matching link
     });
   };
 
-  const formatResponse = (text: string) => {
-    return text
-      .split(/\n(?=\d\.\s)/) // Split at points where numbered lists begin
-      .map((section) => {
-        // Split the section into heading and content
-        const [rawHeading, ...contentLines] = section.split(":");
-        const heading = rawHeading.replace(/^\d+\.\s*/, "").trim(); // Remove numbering and extra spaces
-        const contentText = contentLines.join(":").trim();
-
-        // Return formatted content
-        return `
-          <h3 class="text-lg font-semibold mt-4">${heading}</h3>
-          <p class="text-base leading-relaxed mt-2">${contentText}</p>
-        `;
-      })
-      .join('');
-  };
-
-  const parsedText = parseReferences(text, resultlinks);
-  const formattedContent = formatResponse(parsedText);
+  // Parse and prepare the content
+  const parsedContent = parseReferences(content, resultlinks);
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
+      {/* Bot Icon */}
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
       </div>
-      <div
-        className="ml-4 flex-1 space-y-2 overflow-hidden px-1 prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
-        dangerouslySetInnerHTML={{ __html: formattedContent }} 
-      />
+
+      {/* Render Markdown Content */}
+      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
+        <ReactMarkdown
+          children={parsedContent}
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ href, children }) => (
+              <a
+                href={href?.substring(1)} // Remove the `#` prefix added earlier
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline cursor-pointer"
+              >
+                {children}
+              </a>
+            )
+          }}
+        />
+      </div>
     </div>
   );
 }

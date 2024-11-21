@@ -484,25 +484,25 @@ export function PromptForm({
       {uploadedPdfUrls && <PdfReader pdfUrls={uploadedPdfUrls} />}
       </div>
       <div className="flex space-x-2 mx-8 my-3">
-          <Button  className={`flex-1 py-4 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('openai')}>
+          <Button  className={`flex-1 py-8 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('openai')}>
             <div className="flex flex-col items-center">
               <Brain className="h-3 w-3 mb-1 " />
               <span className="text-xs">OpenAI</span>
             </div>
           </Button>
-          <Button   className={`flex-1 py-4 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
+          <Button   className={`flex-1 py-8 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
             <div className="flex flex-col items-center">
               <Bot className="h-3 w-3 mb-1" />
               <span className="text-xs">Claude</span>
             </div>
           </Button>
-          <Button className={`flex-1 py-4 ${selectedModel === 'perplexity' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('perplexity')}>
+          <Button className={`flex-1 py-8 ${selectedModel === 'perplexity' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('perplexity')}>
             <div className="flex flex-col items-center">
               <Lightbulb className="h-3 w-3 mb-1" />
               <span className="text-xs">Perplexity</span>
             </div>
           </Button>
-          <Button className={`flex-1 py-4 ${selectedModel === 'arxiv' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('arxiv')}>
+          <Button className={`flex-1 py-8 ${selectedModel === 'arxiv' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('arxiv')}>
             <div className="flex flex-col items-center">
               <FileText className="h-3 w-3 mb-1" />
               <span className="text-xs">arXiv</span>
