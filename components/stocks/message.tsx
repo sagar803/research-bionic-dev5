@@ -61,10 +61,10 @@ export function BotMessagePer({
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
       {/* Bot Icon */}
-      <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm  p-1 w-6 h-6">
+      <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm   w-7 h-7">
         <img
-          className="object-contain w-8 h-8"
-          src="/images/gemini.png"
+          className="object-contain w-10 h-10"
+          src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
@@ -145,7 +145,7 @@ export function BotMessage({
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
-          src="/images/gemini.png"
+         src="https://gen.bionicdiamond.com/images/gemini.png"
           alt="gemini logo"
         />
       </div>
