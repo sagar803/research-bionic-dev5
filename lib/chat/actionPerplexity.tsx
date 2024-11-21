@@ -79,6 +79,7 @@ export default async function sendMessageToPerplexity(
   
     const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
         Function Usage Rules:
+        Provide me short and concise response
     If the user mentions a main category (e.g., "Computer Science"), use the \`show_category_selection\` function to display its subcategories.
     To do this:
     1. Identify the main category mentioned by the user.
