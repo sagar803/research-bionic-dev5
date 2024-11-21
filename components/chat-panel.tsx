@@ -74,7 +74,7 @@ export function ChatPanel({
 
             <div className="mx-auto sm:max-w-2xl sm:px-4">
                 {showContent && (
-                    <img className="size-10 object-contain ml-auto mr-auto mb-10" src="/images/gemini.png" alt="gemini logo" />
+                    <img className="size-10 object-contain ml-auto mr-auto mb-10"    src="https://gen.bionicdiamond.com/images/gemini.png" alt="gemini logo" />
                 )}
                 {messages.length === 0 && showContent && (
                     <div className="mb-24 grid sm:grid-cols-3 gap-2 sm:gap-4 px-4 sm:px-0">

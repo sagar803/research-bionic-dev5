@@ -30,7 +30,7 @@ async function UserOrLogin() {
         </>
       ) : (
         <Link href="https://research.bionicdiamond.com/" rel="nofollow">
-          <img className="size-6 object-contain" src="/images/gemini.png" alt="gemini logo" />
+          <img className="size-10 object-contain" src="https://gen.bionicdiamond.com/images/gemini.png" alt="gemini logo" />
         </Link>
       )}
       <div className="flex items-center">
