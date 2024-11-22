@@ -46,20 +46,28 @@ export function BotMessagePer({
 }) {
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
-    return text.replace(/\[(\d+)]/g, (match: any, index: any) => {
-      const urlIndex = parseInt(index, 10) - 1 // Convert citation number to zero-based index
+    return text.replace(/\[(\d+)]/g, (match: string, index: string) => {
+      const urlIndex = parseInt(index, 10) - 1;
       if (links && links[urlIndex]) {
-        return `[${index}](#${links[urlIndex]})` // Markdown format for links
+        return `[${index}](${links[urlIndex]})`; // Return formatted link for valid index
       }
-      return match // Keep the original text if no matching link
-    })
-  }
+      return `[${index}]`; // Keep the reference as is if no valid link
+    });
+  };
+  
+  
 
   // Parse and prepare the content
   const parsedContent = parseReferences(content, resultlinks)
+ const extractReferenceNumbers = (content: string): string[] => {
+  const matches = content.match(/\[(\d+)]/g) || [];
+  return Array.from(new Set(matches)).map(ref => ref.replace(/\[|\]/g, ''));
+};
+ const referenceNumbers = extractReferenceNumbers(text);
+
 
   return (
-    <div className={cn('group relative flex items-start md:-ml-12', className)}>
+    <div className={cn('group relative flex items-start md:-ml-12 pb-[4rem]', className)}>
       {/* Bot Icon */}
       <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm   w-7 h-7">
         <img
@@ -76,7 +84,7 @@ export function BotMessagePer({
           components={{
             a: ({ href, children }) => (
               <a
-                href={href?.substring(1)} // Remove the `#` prefix added earlier
+              href={href?.substring(1)} 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:underline cursor-pointer"
@@ -88,28 +96,32 @@ export function BotMessagePer({
         >
           {parsedContent}
         </ReactMarkdown>
-        {resultlinks && (
+        {resultlinks && resultlinks.length > 0 && referenceNumbers.length > 0 && (
           <div className="">
             <h2>Sources</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-              {resultlinks.map((url, index) => (
-                <div
-                  key={index}
-                  className="p-3 border rounded-xl shadow-md dark:bg-gray-800 dark:text-white flex flex-col justify-between flex-1 min-h-[130px] min-w-[120px] max-w-[300px] "
-                >
-                  <div className="font-semibold">
-                    Related Article on Best Practices {index + 1}
-                  </div>
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline text-[12px] cursor-pointer break-words"
+               {referenceNumbers.map((refIndex, index) => {
+                const urlIndex = parseInt(refIndex, 10) - 1;
+                const currentLink = resultlinks[urlIndex];
+                
+                if (!currentLink) return null;
+                return (
+                  <div
+                    key={index}
+                    className="p-3 border rounded-xl shadow-md dark:bg-gray-800 dark:text-white flex flex-col justify-between flex-1 min-h-[130px] min-w-[120px] max-w-[300px]"
                   >
-                    {url.length > 25 ? `${url.slice(0, 25)}...` : url}
-                  </a>
-                </div>
-              ))}
+                    <div className="font-semibold">Related Article {refIndex}</div>
+                    <a
+                      href={resultlinks[urlIndex] || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline text-[12px] cursor-pointer break-words"
+                    >
+                      {resultlinks[urlIndex]?.length > 25 ? `${resultlinks[urlIndex]?.slice(0, 25)}...` : resultlinks[urlIndex]}
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

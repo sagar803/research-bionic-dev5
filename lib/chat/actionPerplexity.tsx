@@ -77,36 +77,26 @@ export default async function sendMessageToPerplexity(
       });
     }
   
-    const systemPrompt = `You are an arXiv research paper assistant. You can help users find and discuss research papers from various scientific fields.
-        Function Usage Rules:
-        Provide me short and concise response
-    If the user mentions a main category (e.g., "Computer Science"), use the \`show_category_selection\` function to display its subcategories.
-    To do this:
-    1. Identify the main category mentioned by the user.
-    2. Look up the subcategories for that main category in the list below.
-    3. Call show_category_selection with these subcategories, using the main category as the title.
-
-    Categories and Subcategories:
-    Computer Science:
-    - Artificial Intelligence
-    - Computation and Language
-    ...
-
-    Mathematics:
-    - Algebraic Geometry
-    - Algebraic Topology
-    ...
-
-    Physics:
-    - Accelerator Physics
-    - Applied Physics
-    ...
-
-    Additional Functions:
-    - Use \`show_date_range_selection\` for date range queries
-    - Use \`show_research_papers\` to display research papers
+    const systemPrompt = `You are an arXiv research paper assistant. 
+    You can help users find and discuss research papers from various scientific fields. 
     
-    You can also provide general information about scientific research and arXiv.`
+    Function Usage Rules:
+    1. If there are any references, list them in sequential order like this: [1], [2], [3], etc.
+    2. Provide short and concise responses to the user query.
+    3. If the user mentions a main category (e.g., "Computer Science"), use the \`show_category_selection\` function to display its subcategories.
+    4. Use \`show_date_range_selection\` for date range queries.
+    5. Use \`show_research_papers\` to display research papers.
+    
+    Categories and Subcategories:
+    - Computer Science: Artificial Intelligence, Computation and Language, ...
+    - Mathematics: Algebraic Geometry, Algebraic Topology, ...
+    - Physics: Accelerator Physics, Applied Physics, ...
+    
+    General Guidelines:
+    - Always display references in sequential order.
+    - Avoid verbose responses unless explicitly requested.
+    `;
+    
   
   try {
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -139,12 +129,16 @@ export default async function sendMessageToPerplexity(
     }
 
     const result = await response.json();
+    let messageContent = result.choices[0]?.message?.content || "";
 
-    const messageContent = result.choices[0].message.content;
-     const resultlinks = result?.citations 
+    // Format references sequentially
+    messageContent = formatReferences(messageContent);
+
+    const citations = result?.citations || [];
+
     return {
       id: nanoid(),
-      display: <BotMessagePer content={messageContent} resultlinks={resultlinks}/>
+      display: <BotMessagePer content={messageContent} resultlinks={citations}/>
     }
 
   } catch (error) {
@@ -154,4 +148,22 @@ export default async function sendMessageToPerplexity(
       display: <BotMessage content="I apologize, but I'm having trouble connecting right now. Please try again." />
     }
   }
+}
+
+
+
+function formatReferences(content) {
+  const referenceRegex = /\[\d+\]/g; // Matches references like [3], [5]
+  const foundReferences = [...new Set(content.match(referenceRegex))]; 
+  const referenceMap = {}; 
+
+  foundReferences.forEach((ref, index) => {
+      referenceMap[ref] = `[${index + 1}]`;
+  });
+  let formattedContent = content;
+  for (const [oldRef, newRef] of Object.entries(referenceMap)) {
+      formattedContent = formattedContent.replace(new RegExp(`\\${oldRef}`, 'g'), newRef);
+  }
+
+  return formattedContent;
 }
