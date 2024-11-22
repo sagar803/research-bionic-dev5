@@ -304,7 +304,7 @@ export function PromptForm({
                   msg?.id === msgid ? response : msg
                 )
               );
-            }, 5000);
+            }, 2000);
             break;
           
         case 'arxiv':
