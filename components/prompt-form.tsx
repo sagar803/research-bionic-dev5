@@ -23,7 +23,7 @@ import { nanoid } from 'nanoid'
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { toast } from 'sonner'
-import { SpinnerMessage, UserMessage } from './stocks/message'
+import { BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
 import { useGlobalState } from '@/context/GlobalContext';
 import { Card } from './ui/card'
 import PdfReader from './PdfReader'
@@ -42,6 +42,7 @@ export function PromptForm({
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const { submitUserMessage , sendMessageToClaude , sendMessageToPerplexity } = useActions()
+  const [loading, setLoading] = React.useState(false); 
 
   const [messages, setMessages] = useUIState<typeof AI>()
   const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
@@ -201,6 +202,7 @@ export function PromptForm({
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setLoading(true)
     e.preventDefault()
 
     if (window.innerWidth < 600) {
@@ -210,7 +212,7 @@ export function PromptForm({
     const value = input.trim()
     setInput('')
     if (!value && uploadedImages.length === 0) return
-
+  
     const combinedContent = (
       <div className="flex flex-col gap-2">
         <p>{value}</p>
@@ -282,19 +284,33 @@ export function PromptForm({
          
           )
           break
-        case 'perplexity':
-          responseMessage = await sendMessageToPerplexity(
-            value,
-            uploadedImages,
-            uploadedPdfFiles,
-            uploadingCSVFiles
-
-          );
-          break
+          case 'perplexity':
+            const msgid = nanoid();
+            setMessages(currentMessages => [...currentMessages, {
+              id: msgid,
+              display: <BotMessagePer content="" />
+            }]);
+            setTimeout(async () => {
+              const response = await sendMessageToPerplexity(
+                value,  
+                uploadedImages,
+                uploadedPdfFiles,
+                uploadingCSVFiles,
+                msgid
+              );
+              setMessages(currentMessages => 
+                currentMessages.map(msg => 
+                  msg?.id === msgid ? response : msg
+                )
+              );
+            }, 3000);
+            break;
+          
         case 'arxiv':
           responseMessage = await axios.post('/api/arxiv', payload)
           break
         default:
+      
       responseMessage = await submitUserMessage(
         value,
         model,
@@ -307,7 +323,11 @@ export function PromptForm({
       setUploadedPdfFiles([])
       setUploadingCSVFiles([])
       setMessages(currentMessages => [...currentMessages, responseMessage])
+      setTimeout(() => {
+        setLoading(false);
+      }, 5000); 
     } catch (error) {
+      setLoading(false);
       console.error('Error submitting message:', error)
       toast(
         <div className="text-red-600">
@@ -324,6 +344,7 @@ export function PromptForm({
         </div>
       )
     }
+ 
   }
 
   const canUploadAttachments = [
@@ -344,6 +365,7 @@ export function PromptForm({
         multiple
       />
       <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
+ 
         {canUploadAttachments && (
           <Tooltip>
             <TooltipTrigger asChild>
