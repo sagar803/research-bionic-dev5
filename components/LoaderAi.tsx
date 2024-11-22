@@ -9,7 +9,7 @@ const messages = [
     "Gathering data...",
     "Preparing final output...",
 ];
-const interval = 2000;
+const interval = 2400;
 
 const LoaderAi: React.FC<LoaderProps> = () => {
     const [currentMessage, setCurrentMessage] = useState<string>('');
