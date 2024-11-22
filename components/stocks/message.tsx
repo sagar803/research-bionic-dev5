@@ -105,12 +105,14 @@ export function BotMessagePer({
 
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
+    if (!text) return '';
+    
     return text.replace(/\[(\d+)]/g, (match: string, index: string) => {
       const urlIndex = parseInt(index, 10) - 1;
       if (links && links[urlIndex]) {
-        return `[${index}](${links[urlIndex]})`; // Return formatted link for valid index
+        return `[${index}](${links[urlIndex]})`;
       }
-      return `[${index}]`; 
+      return match; 
     });
   };
   
