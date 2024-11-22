@@ -2,17 +2,14 @@ import React, { useState, useEffect } from "react";
 
 interface LoaderProps {
     messages: string[];
-    interval?: number; // Interval in milliseconds
+    interval?: number; 
 }
 
 const messages = [
-    "Unpacking your request...",
-    "Connecting to my sources...",
     "Gathering data...",
-    "Analyzing patterns...",
     "Preparing final output...",
 ];
-const interval = 1500;
+const interval = 2000;
 
 const LoaderAi: React.FC<LoaderProps> = () => {
     const [currentMessage, setCurrentMessage] = useState<string>('');
@@ -43,9 +40,9 @@ const LoaderAi: React.FC<LoaderProps> = () => {
                 setCharIndex((prev) => prev + 1);
             } else {
                 clearInterval(typingEffect);
-                setIsTyping(false); // Finish typing after the message is done
+                setIsTyping(false); 
             }
-        }, 100); // Typing speed (adjust as needed)
+        }, 100); 
 
         return () => clearInterval(typingEffect);
     }, [currentIndex]);
