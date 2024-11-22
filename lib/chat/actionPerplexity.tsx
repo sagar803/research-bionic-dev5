@@ -134,7 +134,7 @@ export default async function sendMessageToPerplexity(
 
     const result = await response.json();
     let messageContent = result.choices[0]?.message?.content || "";
-console.log("3434" , messageContent)
+
     // Format references sequentially
     // messageContent = formatReferences(messageContent);
 

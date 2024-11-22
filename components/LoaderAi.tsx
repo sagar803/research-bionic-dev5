@@ -12,7 +12,7 @@ const messages = [
     "Analyzing patterns...",
     "Preparing final output...",
 ];
-const interval = 1000;
+const interval = 1500;
 
 const LoaderAi: React.FC<LoaderProps> = () => {
     const [currentMessage, setCurrentMessage] = useState<string>('');
@@ -24,35 +24,34 @@ const LoaderAi: React.FC<LoaderProps> = () => {
         const loaderInterval = setInterval(() => {
             setCurrentIndex((prevIndex) => {
                 const nextIndex = prevIndex + 1;
-                if (nextIndex >= messages.length) {
+                if (nextIndex >= messages?.length) {
                     clearInterval(loaderInterval);
                 }
                 return nextIndex;
             });
         }, interval);
 
-        return () => clearInterval(loaderInterval); // Cleanup on unmount
+        return () => clearInterval(loaderInterval);
     }, [messages, interval]);
 
     useEffect(() => {
-        // Reset typing effect when the message changes
         setCharIndex(0);
         setIsTyping(true);
 
         const typingEffect = setInterval(() => {
-            if (charIndex < messages[currentIndex].length) {
+            if (charIndex < messages[currentIndex]?.length) {
                 setCharIndex((prev) => prev + 1);
             } else {
                 clearInterval(typingEffect);
                 setIsTyping(false); // Finish typing after the message is done
             }
-        }, 50); 
+        }, 100); // Typing speed (adjust as needed)
 
         return () => clearInterval(typingEffect);
     }, [currentIndex]);
 
     useEffect(() => {
-        setCurrentMessage(messages[currentIndex].slice(0, charIndex));
+        setCurrentMessage(messages[currentIndex]?.slice(0, charIndex));
     }, [charIndex, currentIndex]);
 
     return (
