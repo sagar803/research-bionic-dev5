@@ -7,9 +7,13 @@ export default async function sendMessageToPerplexity(
     content: string,
     images?: string[],
     pdfFiles: { name: string; text: string }[],
-    csvFiles: { name: string; text: string }[]
+    csvFiles: { name: string; text: string }[],
+    msgid?:any
   ) {
     'use server'
+
+    const messageId = msgid;
+ 
   
     const messages = [];
 
@@ -130,23 +134,32 @@ export default async function sendMessageToPerplexity(
 
     const result = await response.json();
     let messageContent = result.choices[0]?.message?.content || "";
-
+console.log("3434" , messageContent)
     // Format references sequentially
-    messageContent = formatReferences(messageContent);
+    // messageContent = formatReferences(messageContent);
 
     const citations = result?.citations || [];
-
+  
     return {
-      id: nanoid(),
-      display: <BotMessagePer content={messageContent} resultlinks={citations}/>
-    }
+      id: msgid,
+      display: <BotMessagePer 
+        content={messageContent}
+        resultlinks={citations}
+        key={msgid} 
+      />
+    };
+
 
   } catch (error) {
     console.error('Perplexity API Error:', error);
     return {
-      id: nanoid(),
-      display: <BotMessage content="I apologize, but I'm having trouble connecting right now. Please try again." />
-    }
+      id: messageId,
+      display: <BotMessagePer 
+        content="Error connecting. Please try again." 
+      
+      />
+    };
+
   }
 }
 

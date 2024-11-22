@@ -13,6 +13,7 @@ import { StreamableValue } from 'ai/rsc'
 import { useStreamableText } from '@/lib/hooks/use-streamable-text'
 import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { Loader2 } from 'lucide-react'; 
 
 import {
   Accordion,
@@ -20,6 +21,7 @@ import {
   AccordionItem,
   AccordionTrigger
 } from '@/components/ui/accordion'
+import LoaderAi from '../LoaderAi'
 
 // Different types of message bubbles.
 export function UserMessage({ children }: { children: React.ReactNode }) {
@@ -35,15 +37,79 @@ export function UserMessage({ children }: { children: React.ReactNode }) {
   )
 }
 
+const LoadingDots = () => {
+  const [dots, setDots] = useState('');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return <span>{dots}</span>;
+};
+
+export const LoadingMessage = () => (
+
+    <div>AI is thinking</div>
+
+);
+const messagesdata: string[] = [
+  "Unpacking your request...",
+  "Connecting to my sources...",
+  "Gathering data...",
+  "Analyzing patterns...",
+  "Evaluating sources for credibility...",
+  "Synthesizing findings...",
+  "Preparing final output..."
+];
+function displayLoaderMessages(messagesdata: string[], interval: number = 1000): void {
+  let index: number = 0;
+
+  const loaderInterval = setInterval(() => {
+      console.log(messagesdata[index]); // Replace with DOM manipulation if needed
+      index++;
+
+      if (index >= messagesdata?.length) {
+          clearInterval(loaderInterval);
+          console.log("Loading complete!"); // Optional: Final completion message
+      }
+  }, interval);
+}
+
+// const [isLoading, setIsLoading] = useState(true);
+
+// useEffect(() => {
+//   const timer = setTimeout(() => {
+//     setIsLoading(false);
+//   }, 3000); // 3 seconds delay
+
+//   return () => clearTimeout(timer); 
+// }, []);
+
 export function BotMessagePer({
   content,
   className,
-  resultlinks
+  resultlinks,
+  
+
 }: {
   content: string | StreamableValue<string>
   className?: string
   resultlinks?: string[] // Array of URLs
+
 }) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []); 
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
     return text.replace(/\[(\d+)]/g, (match: string, index: string) => {
@@ -51,12 +117,12 @@ export function BotMessagePer({
       if (links && links[urlIndex]) {
         return `[${index}](${links[urlIndex]})`; // Return formatted link for valid index
       }
-      return `[${index}]`; // Keep the reference as is if no valid link
+      return `[${index}]`; 
     });
   };
   
-  
 
+  console.log("3434" , content)
   // Parse and prepare the content
   const parsedContent = parseReferences(content, resultlinks)
  const extractReferenceNumbers = (content: string): string[] => {
@@ -68,7 +134,8 @@ export function BotMessagePer({
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12 pb-[4rem]', className)}>
-      {/* Bot Icon */}
+    
+   
       <div className="bg-background flex size-[25px]  shrink-0 select-none items-center justify-center rounded-lg border shadow-sm   w-7 h-7">
         <img
           className="object-contain w-10 h-10"
@@ -76,9 +143,14 @@ export function BotMessagePer({
           alt="gemini logo"
         />
       </div>
-
+      
       {/* Render Markdown Content */}
-      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1 prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
+      <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
+        {isLoading ? (
+        <div><LoaderAi/></div>
+        ) : (
+          <>
+      <div className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -126,6 +198,8 @@ export function BotMessagePer({
           </div>
         )}
       </div>
+      </>)}
+      </div>
     </div>
   )
 }
@@ -141,19 +215,9 @@ export function BotMessage({
   resultlinks?: string[]
 }) {
   const text = useStreamableText(content)
-  const parseReferences = (text: string, links?: string[]) => {
-    return text.replace(/\[(\d+)]/g, (match, index) => {
-      const urlIndex = parseInt(index, 10) - 1 // Convert citation number to zero-based index
-      if (links && links[urlIndex]) {
-        return `<a href="${links[urlIndex]}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline">${match}</a>`
-      }
-      return match // Keep the original text if no matching link
-    })
-  }
 
-  const parsedText = parseReferences(text, resultlinks)
   return (
-    <div className={cn('group relative flex items-start md:-ml-12', className)}>
+    <div className={cn('group relative flex items-start md:-ml-12  pb-[4rem]', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
         <img
           className="size-6 object-contain"
