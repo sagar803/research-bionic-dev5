@@ -160,7 +160,7 @@ export function BotMessagePer({
             )
           }}
         >
-          {parsedContent}
+          {parsedContent ? parsedContent :  "Preparing final output..."}
         </ReactMarkdown>
         {resultlinks && resultlinks.length > 0 && referenceNumbers.length > 0 && (
           <div className="">
