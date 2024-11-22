@@ -101,15 +101,8 @@ export function BotMessagePer({
   resultlinks?: string[] // Array of URLs
 
 }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(content ? false : true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, []); 
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
     return text.replace(/\[(\d+)]/g, (match: string, index: string) => {
@@ -122,7 +115,6 @@ export function BotMessagePer({
   };
   
 
-  console.log("3434" , content)
   // Parse and prepare the content
   const parsedContent = parseReferences(content, resultlinks)
  const extractReferenceNumbers = (content: string): string[] => {
@@ -147,7 +139,7 @@ export function BotMessagePer({
       {/* Render Markdown Content */}
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         {isLoading ? (
-        <div><LoaderAi/></div>
+        <div><LoaderAi messages={[]}/></div>
         ) : (
           <>
       <div className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">

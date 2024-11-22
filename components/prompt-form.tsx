@@ -303,7 +303,7 @@ export function PromptForm({
                   msg?.id === msgid ? response : msg
                 )
               );
-            }, 3000);
+            }, 6000);
             break;
           
         case 'arxiv':
