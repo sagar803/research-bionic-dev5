@@ -290,20 +290,21 @@ export function PromptForm({
               id: msgid,
               display: <BotMessagePer content="" />
             }]);
+            const response = await sendMessageToPerplexity(
+              value,  
+              uploadedImages,
+              uploadedPdfFiles,
+              uploadingCSVFiles,
+              msgid
+            );
             setTimeout(async () => {
-              const response = await sendMessageToPerplexity(
-                value,  
-                uploadedImages,
-                uploadedPdfFiles,
-                uploadingCSVFiles,
-                msgid
-              );
+            
               setMessages(currentMessages => 
                 currentMessages.map(msg => 
                   msg?.id === msgid ? response : msg
                 )
               );
-            }, 6000);
+            }, 5000);
             break;
           
         case 'arxiv':

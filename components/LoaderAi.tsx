@@ -17,8 +17,8 @@ const interval = 1500;
 const LoaderAi: React.FC<LoaderProps> = () => {
     const [currentMessage, setCurrentMessage] = useState<string>('');
     const [currentIndex, setCurrentIndex] = useState<number>(0);
-    const [charIndex, setCharIndex] = useState<number>(0); // To handle the typing animation
-    const [isTyping, setIsTyping] = useState<boolean>(true); // To control typing state
+    const [charIndex, setCharIndex] = useState<number>(0);
+    const [isTyping, setIsTyping] = useState<boolean>(true); 
 
     useEffect(() => {
         const loaderInterval = setInterval(() => {
