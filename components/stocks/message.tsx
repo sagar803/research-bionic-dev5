@@ -102,6 +102,12 @@ export function BotMessagePer({
 
 }) {
   const [isLoading, setIsLoading] = useState(content ? false : true);
+  const [isArrayLoading, setIsArrayLoading] = useState(true); 
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsArrayLoading(false), 2000); 
+    return () => clearTimeout(timer); 
+  }, []);
 
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
@@ -164,6 +170,7 @@ export function BotMessagePer({
         <div><LoaderAi messages={[]}/></div>
         ) : (
           <>
+          {isArrayLoading ?  <div className="" style={{ fontSize: "15px", whiteSpace: "nowrap" , color: "gray", fontStyle: "italic" }}>Preparing final output...</div>:
       <div className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -180,7 +187,7 @@ export function BotMessagePer({
             )
           }}
         >
-          {parsedContent ? parsedContent :  "Preparing final output..."}
+          {parsedContent}
         </ReactMarkdown>
         {resultlinks && resultlinks.length > 0 && referenceNumbers.length > 0 && (
           <div className="">
@@ -211,7 +218,7 @@ export function BotMessagePer({
             </div>
           </div>
         )}
-      </div>
+      </div>}
       </>)}
       </div>
     </div>
