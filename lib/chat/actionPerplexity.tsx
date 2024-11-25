@@ -136,8 +136,7 @@ export default async function sendMessageToPerplexity(
     let messageContent = result.choices[0]?.message?.content || "";
 
     // Format references sequentially
-    // messageContent = formatReferences(messageContent);
-
+    messageContent = formatReferences(messageContent);
     const citations = result?.citations || [];
   
     return {
@@ -163,20 +162,33 @@ export default async function sendMessageToPerplexity(
   }
 }
 
-
-
 function formatReferences(content) {
-  const referenceRegex = /\[\d+\]/g; // Matches references like [3], [5]
-  const foundReferences = [...new Set(content.match(referenceRegex))]; 
-  const referenceMap = {}; 
-
-  foundReferences.forEach((ref, index) => {
-      referenceMap[ref] = `[${index + 1}]`;
+  content = content.replace(/\*\*(\d{2,})\*\*/g, (match, p1) => {
+    return p1.split('').map(n => `[${n}]`).join(', ');
   });
-  let formattedContent = content;
-  for (const [oldRef, newRef] of Object.entries(referenceMap)) {
-      formattedContent = formattedContent.replace(new RegExp(`\\${oldRef}`, 'g'), newRef);
+  content = content.replace(/\*\*(\d+)\*\*/g, '[$1]');
+  const referenceRegex = /\[(\d+)\]/g;
+  const numbers = [];
+  let match;
+  while ((match = referenceRegex.exec(content)) !== null) {
+    const num = parseInt(match[1]);
+    if (!numbers.includes(num)) {
+      numbers.push(num);
+    }
   }
 
+  numbers.sort((a, b) => a - b);
+  
+
+  const referenceMap = {};
+  numbers.forEach((num, index) => {
+    referenceMap[`[${num}]`] = `[${index + 1}]`;
+  });
+
+  let formattedContent = content;
+  Object.entries(referenceMap).forEach(([oldRef, newRef]) => {
+    formattedContent = formattedContent.replaceAll(oldRef, newRef);
+  });
+  
   return formattedContent;
 }

@@ -140,12 +140,11 @@ export function BotMessagePer({
 
   // Parse and prepare the content
   const parsedContent = parseReferences(content, resultlinks)
- const extractReferenceNumbers = (content: string): string[] => {
-  const matches = content.match(/\[(\d+)]/g) || [];
-  return Array.from(new Set(matches)).map(ref => ref.replace(/\[|\]/g, ''));
-};
+  const extractReferenceNumbers = (content: string): string[] => {
+    const matches = content.match(/\[(\d+)]/g) || [];
+    return Array.from(new Set(matches)).map(ref => ref.replace(/\[|\]/g, ''));
+  };
  const referenceNumbers = extractReferenceNumbers(text);
-
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12 pb-[4rem]', className)}>
@@ -187,8 +186,8 @@ export function BotMessagePer({
           <div className="">
             <h2>Sources</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-               {referenceNumbers.map((refIndex, index) => {
-                const urlIndex = parseInt(refIndex, 10) - 1;
+               {referenceNumbers?.map((refIndex, index) => {
+                const urlIndex = parseInt(refIndex, 10) - 1; 
                 const currentLink = resultlinks[urlIndex];
                 
                 if (!currentLink) return null;
