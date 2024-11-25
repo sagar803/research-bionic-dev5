@@ -106,14 +106,35 @@ export function BotMessagePer({
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
     if (!text) return '';
-    
-    return text.replace(/\[(\d+)]/g, (match: string, index: string) => {
+  
+    const refMap = new Map<number, string>();
+  
+    // Map references to their corresponding URLs
+    text.replace(/\[(\d+)]/g, (_match:any, index:any) => {
       const urlIndex = parseInt(index, 10) - 1;
-      if (links && links[urlIndex]) {
-        return `[${index}](${links[urlIndex]})`;
+      if (links?.[urlIndex]) {
+        refMap.set(parseInt(index, 10), links[urlIndex]);
       }
-      return match; 
+      return _match;
     });
+  
+    // Replace references in text with clickable URLs
+    let processedText = text;
+    refMap.forEach((url, index) => {
+   
+      const regex = new RegExp(`\\[${index}\\](?!\\(http)`, 'g'); 
+      processedText = processedText.replace(
+        regex,
+        `[${index}](${url})` 
+      );
+    });
+
+    processedText = processedText.replace(
+      /(\]\([^)]+\))(\[)/g, 
+      '$1, $2' 
+    );
+  
+    return processedText;
   };
   
 
@@ -150,7 +171,7 @@ export function BotMessagePer({
           components={{
             a: ({ href, children }) => (
               <a
-              href={href?.substring(1)} 
+              href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:underline cursor-pointer"
