@@ -137,7 +137,6 @@ export default async function sendMessageToPerplexity(
 
     // Format references sequentially
     messageContent = formatReferences(messageContent);
-console.log("3434343434" ,messageContent )
     const citations = result?.citations || [];
   
     return {
