@@ -299,12 +299,14 @@ export function PromptForm({
             );
             const responsetwo = { id: 1, text: 'Preparing final output...' };
        
+            setTimeout(async () => {
             
               setMessages(currentMessages => 
                 currentMessages.map(msg => 
                   msg?.id === msgid ? response ? response :  responsetwo : msg
                 )
               );
+            }, 2400);
          
             break;
           
