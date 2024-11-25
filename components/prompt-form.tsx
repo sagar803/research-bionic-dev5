@@ -309,7 +309,15 @@ export function PromptForm({
             break;
           
         case 'arxiv':
-          responseMessage = await axios.post('/api/arxiv', payload)
+                
+      responseMessage = await submitUserMessage(
+        value,
+        model,
+        uploadedImages,
+        uploadedPdfFiles, 
+        uploadingCSVFiles
+      )
+          // responseMessage = await axios.post('/api/arxiv', payload)
           break
         default:
       
