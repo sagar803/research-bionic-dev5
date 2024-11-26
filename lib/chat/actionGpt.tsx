@@ -74,7 +74,7 @@ export default async function sendMessageToOpenAI(
     const messages = [
         {
             role: "system",
-            content: `You are an arXiv research paper assistant. 
+            content: `You are an research paper assistant. 
                 You can help users find and discuss research papers from various scientific fields. 
                 
                 Function Usage Rules:
