@@ -377,26 +377,26 @@ export function PromptForm({
         multiple
       />
       <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
- 
-        {canUploadAttachments && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className="size-8 cursor-pointer rounded-full bg-background p-0 flex items-center justify-center"
-                onClick={() => {
-                  if (isUploading) {
-                    return
-                  }
-                  fileRef.current?.click()
-                }}
-              >
-                <IconPlus />
-                <span className="sr-only">New Chat</span>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Add Attachments</TooltipContent>
-          </Tooltip>
-        )}
+      {selectedModel !== "perplexity" && canUploadAttachments && (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <span
+        className="size-8 cursor-pointer rounded-full bg-background p-0 flex items-center justify-center"
+        onClick={() => {
+          if (isUploading) {
+            return;
+          }
+          fileRef.current?.click();
+        }}
+      >
+        <IconPlus />
+        <span className="sr-only">New Chat</span>
+      </span>
+    </TooltipTrigger>
+    <TooltipContent>Add Attachments</TooltipContent>
+  </Tooltip>
+)}
+
         <div className="relative mt-2 mb-2 ml-2 flex justify-center space-x-2">
           {uploadedImages.length > 0 && (
             <>
@@ -453,6 +453,7 @@ export function PromptForm({
               <div
               className="relative h-12 w-12 flex items-center justify-center bg-black mx-1 rounded-lg "
             >
+              
               <Button
                 variant="outline"
                 size="icon"
@@ -469,6 +470,7 @@ export function PromptForm({
                 key={index}
                 className="relative h-12 w-12 flex items-center justify-center bg-black mx-1 rounded-lg "
               >
+                
                 <Button
                   variant="outline"
                   size="icon"
