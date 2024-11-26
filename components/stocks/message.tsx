@@ -236,7 +236,12 @@ export function BotMessage({
   resultlinks?: string[]
 }) {
   const text = useStreamableText(content)
+  const [isArrayLoading, setIsArrayLoading] = useState(true); 
 
+  useEffect(() => {
+    const timer = setTimeout(() => setIsArrayLoading(false), 2000); 
+    return () => clearTimeout(timer); 
+  }, []);
   return (
     <div className={cn('group relative flex items-start md:-ml-12  pb-[4rem]', className)}>
       <div className="bg-background flex size-[25px] shrink-0 select-none items-center justify-center rounded-lg border shadow-sm">
@@ -246,6 +251,7 @@ export function BotMessage({
           alt="gemini logo"
         />
       </div>
+      {isArrayLoading ?  <div className="" style={{ fontSize: "15px", whiteSpace: "nowrap" , color: "gray", fontStyle: "italic" , marginLeft:"12px" }}>Preparing final output...</div>:
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
         <MemoizedReactMarkdown
           className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
@@ -288,7 +294,7 @@ export function BotMessage({
         >
           {text}
         </MemoizedReactMarkdown>
-      </div>
+      </div>}
     </div>
   )
 }

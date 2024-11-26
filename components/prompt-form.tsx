@@ -276,13 +276,30 @@ export function PromptForm({
       let responseMessage:any;
       switch (selectedModel) {
         case 'claude':
-          responseMessage = await sendMessageToClaude(
+          const msgiid = nanoid();
+          setMessages(currentMessages => [...currentMessages, {
+            id: msgiid,
+            display: <BotMessagePer content="" />
+          }]);
+          const responseclu = await sendMessageToClaude(
            value,
            uploadedImages,
            uploadedPdfFiles,
-           uploadingCSVFiles
+           uploadingCSVFiles,
+           msgiid
          
           )
+          const responsecluStatic = { id: 1, text: 'Preparing final output...' };
+       
+          setTimeout(async () => {
+          
+            setMessages(currentMessages => 
+              currentMessages.map(msg => 
+                msg?.id === msgiid ? responseclu ? responseclu :  responsecluStatic : msg
+              )
+            );
+          }, 2400);
+       
           break
           case 'perplexity':
             const msgid = nanoid();
