@@ -6,7 +6,8 @@ export default async function sendMessageToClaude(
   content: string,
   images?: string[],
   pdfFiles: { name: string; text: string }[] = [],
-  csvFiles: { name: string; text: string }[] = []
+  csvFiles: { name: string; text: string }[] = [],
+  msgiid:any
 ) {
   'use server'
 
