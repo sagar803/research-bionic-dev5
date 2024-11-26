@@ -37,6 +37,7 @@ import axios from 'axios'
 import { error } from 'console'
 import sendMessageToPerplexity from './actionPerplexity'
 import sendMessageToOpenAI from './actionGpt'
+import sendMessageToOpenAIo1 from './actionGpto1'
 
 
 export const maxDuration = 300;
@@ -665,7 +666,8 @@ export const AI = createAI<AIState, UIState>({
     submitUserMessage,
     sendMessageToClaude,
     sendMessageToPerplexity,
-    sendMessageToOpenAI
+    sendMessageToOpenAI,
+    sendMessageToOpenAIo1
   },
   initialUIState: [],
   initialAIState: { chatId: nanoid(), messages: [] },

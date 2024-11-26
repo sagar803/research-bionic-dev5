@@ -41,7 +41,7 @@ export function PromptForm({
   const [selectedModel, setSelectedModel] = React.useState('openai') 
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage , sendMessageToClaude , sendMessageToPerplexity , sendMessageToOpenAI } = useActions()
+  const { submitUserMessage , sendMessageToClaude , sendMessageToPerplexity , sendMessageToOpenAI , sendMessageToOpenAIo1 } = useActions()
   const [loading, setLoading] = React.useState(false); 
 
   const [messages, setMessages] = useUIState<typeof AI>()
@@ -326,6 +326,19 @@ export function PromptForm({
             }, 2400);
          
             break;
+            
+                 
+        case 'gpto1':
+                
+        responseMessage = await sendMessageToOpenAIo1(
+          value,
+          model,
+          uploadedImages,
+          uploadedPdfFiles, 
+          uploadingCSVFiles
+        )
+  
+            break
           
         case 'arxiv':
                 
@@ -336,7 +349,7 @@ export function PromptForm({
         uploadedPdfFiles, 
         uploadingCSVFiles
       )
-          // responseMessage = await axios.post('/api/arxiv', payload)
+
           break
         default:
       
@@ -394,7 +407,7 @@ export function PromptForm({
         multiple
       />
       <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
-      {selectedModel !== "perplexity" &&selectedModel !== 'arxiv'&& canUploadAttachments && (
+      {selectedModel !== "perplexity" &&selectedModel !== 'arxiv' && selectedModel!=="gpto1" && canUploadAttachments && (
   <Tooltip>
     <TooltipTrigger asChild>
       <span
@@ -541,6 +554,12 @@ export function PromptForm({
             <div className="flex flex-col items-center">
               <Brain className="h-3 w-3 mb-1 " />
               <span className="text-xs">ChatGPT</span>
+            </div>
+          </Button>
+          <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'gpto1' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('gpto1')}>
+            <div className="flex flex-col items-center">
+              <Brain className="h-3 w-3 mb-1 " />
+              <span className="text-xs">GPT o1</span>
             </div>
           </Button>
           <Button     type="button" className={`flex-1 py-8 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
