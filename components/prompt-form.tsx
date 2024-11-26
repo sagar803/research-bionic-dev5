@@ -394,7 +394,7 @@ export function PromptForm({
         multiple
       />
       <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
-      {selectedModel !== "perplexity" && canUploadAttachments && (
+      {selectedModel !== "perplexity" &&selectedModel !== 'arxiv'&& canUploadAttachments && (
   <Tooltip>
     <TooltipTrigger asChild>
       <span
@@ -540,7 +540,7 @@ export function PromptForm({
           <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('openai')}>
             <div className="flex flex-col items-center">
               <Brain className="h-3 w-3 mb-1 " />
-              <span className="text-xs">OpenAI</span>
+              <span className="text-xs">ChatGPT</span>
             </div>
           </Button>
           <Button     type="button" className={`flex-1 py-8 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
