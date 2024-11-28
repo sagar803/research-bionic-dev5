@@ -42,7 +42,7 @@ export class ChatStorage {
         model: any
       ) {
         const existingChats = await this.getUserChats(userId);
-        const modelChatField = `${model}_chat` as ChatModelField;
+        const modelChatField = `all_chat` as ChatModelField;
     
         if (existingChats) {
           const existingMessages = existingChats[modelChatField];
@@ -86,7 +86,7 @@ export class ChatStorage {
         const userChats = await this.getUserChats(userId);
         if (!userChats) return [];
     
-        const modelChatField = `${model}_chat` as ChatModelField;
+        const modelChatField = `all_chat` as ChatModelField;
         return userChats[modelChatField] || [];
       }
     }
