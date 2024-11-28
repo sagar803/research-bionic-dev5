@@ -14,13 +14,13 @@ import { DialogLogin } from "./LoginModal";
 import { Session } from "inspector";
 
 
-const loginAzure = ()=>{
-  signIn('azure-ad')
-}
+// const loginAzure =async ()=>{
+//  await signIn('azure-ad')
+// }
 
 async function UserOrLogin() {
-  const { data: session, status }: any = useSession();
-
+  // const { data: session, status }: any = useSession();
+const session:any = true
   return (
     <>
       {false? (
@@ -50,11 +50,11 @@ async function UserOrLogin() {
 }
 
 export function Header() {
-  const { data: session, status }: any = useSession();
-  const logoutAzure = async()=>{
-    if(session)
-    await signOut();
-  }
+  // const { data: session, status }: any = useSession();
+  // const logoutAzure = async()=>{
+  //   if(session)
+  //   await signOut();
+  // }
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between w-full h-16 px-12 bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
       <div className="flex items-center">
