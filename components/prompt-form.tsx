@@ -513,7 +513,7 @@ export function PromptForm({
               )
             )
           }, 2400)
-          if (responseMessage && (session || guestmode)) {
+          if (response4o && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseMessage, selectedModel)
             }
