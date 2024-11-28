@@ -2,7 +2,7 @@
 "use client"
 import * as React from "react";
 import Link from "next/link";
-import { auth } from "@/auth";
+
 import { Button } from "@/components/ui/button";
 import { IconSeparator } from "@/components/ui/icons";
 import { UserMenu } from "@/components/user-menu";

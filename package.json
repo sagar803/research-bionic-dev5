@@ -44,7 +44,7 @@
     "lucide-react": "^0.400.0",
     "nanoid": "^5.0.4",
     "next": "14.2.3",
-    "next-auth": "^4.24.5",
+    "next-auth": "^4.24.10",
     "next-themes": "^0.2.1",
     "openai": "^4.52.0",
     "pdf-ts": "^0.0.2",
