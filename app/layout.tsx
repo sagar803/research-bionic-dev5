@@ -9,6 +9,7 @@ import { Providers } from '@/components/providers'
 import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 import { GlobalStateProvider } from '@/context/GlobalContext'
+import SessionWrapper from './SessionWrapper'
 
 
 export const metadata = {
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         )}
       >
           <Toaster position="top-center" />
+          <SessionWrapper>
           <Providers
             attribute="class"
             defaultTheme="system"
@@ -62,6 +64,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <TailwindIndicator />
           </GlobalStateProvider>
           </Providers>
+          </SessionWrapper>
           <Analytics />
       </body>
     </html>

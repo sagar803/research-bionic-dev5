@@ -9,10 +9,12 @@ export default async function sendMessageToOpenAI(
     images?: string[],
     pdfFiles: { name: string; text: string }[],
     csvFiles: { name: string; text: string }[],
+    msgiid4o:any
+    
 ) {
     'use server'
 
-    const messageId = nanoid();
+    const messageId = msgiid4o;
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
     });

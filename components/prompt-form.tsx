@@ -23,10 +23,13 @@ import { nanoid } from 'nanoid'
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { toast } from 'sonner'
-import { BotMessagePer, SpinnerMessage, UserMessage  } from './stocks/message'
-import { useGlobalState } from '@/context/GlobalContext';
+import { BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
+import { useGlobalState } from '@/context/GlobalContext'
 import { Card } from './ui/card'
 import PdfReader from './PdfReader'
+import { ChatStorage } from '@/lib/chatStorage'
+import { signIn, useSession } from 'next-auth/react'
+import { DialogLogin } from './LoginModal'
 
 export function PromptForm({
   input,
@@ -35,24 +38,34 @@ export function PromptForm({
   input: string
   setInput: (value: string) => void
 }) {
-
   // @ts-ignore
-  const {uploadedPdfUrls, setUploadedUrls} = useGlobalState()
-  const [selectedModel, setSelectedModel] = React.useState('openai') 
+  const { uploadedPdfUrls, setUploadedUrls } = useGlobalState()
+  const [selectedModel, setSelectedModel] = React.useState('openai')
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage , sendMessageToClaude , sendMessageToPerplexity , sendMessageToOpenAI , sendMessageToOpenAIo1 } = useActions()
-  const [loading, setLoading] = React.useState(false); 
-
+  const {
+    submitUserMessage,
+    sendMessageToClaude,
+    sendMessageToPerplexity,
+    sendMessageToOpenAI,
+    sendMessageToOpenAIo1
+  } = useActions()
+  const [loading, setLoading] = React.useState(false)
+  const { data: session, status }: any = useSession()
   const [messages, setMessages] = useUIState<typeof AI>()
   const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
+  const [guestmode, setGuestmode] = React.useState<boolean>(false);
 
+  const [guestId, setGuestId] = React.useState<string>('')
+  const loginAzure = () => {
+    signIn('azure-ad')
+  }
   //Adding Pdf files
   const [uploadedPdfFiles, setUploadedPdfFiles] = React.useState<
     {
       text: string
       name: string
-      url :string
+      url: string
     }[]
   >([])
 
@@ -63,6 +76,68 @@ export function PromptForm({
   const [isUploading, setIsUploading] = React.useState(false)
 
   const { model } = useModel()
+
+  React.useEffect(() => {
+    if (guestmode && !guestId) {
+      setGuestId(`guest_${nanoid()}`)
+    }
+  }, [guestmode])
+
+  React.useEffect(() => {
+    const loadUserChats = async () => {
+      const userId = guestmode ? guestId : session?.user?.id
+      if (userId && selectedModel) {
+        try {
+          const chatHistory = await ChatStorage.getModelChat(
+            userId,
+            selectedModel
+          )
+
+          const uiMessages:any = chatHistory
+            ?.map(msg => {
+              // For bot messages
+              if (msg.display?.props?.content) {
+                return {
+                  id: msg.id,
+                  display: React.createElement(BotMessagePer, {
+                    content: msg.display.props.content,
+                    resultlinks: msg.display.props.resultlinks || []
+                  })
+                }
+              }
+
+              // For user messages
+              const messageContent =
+                msg.display?.props?.children?.props?.children?.[0]?.props
+                  ?.children
+              if (messageContent) {
+                return {
+                  id: msg.id,
+                  display: React.createElement(
+                    UserMessage,
+                    null,
+                    React.createElement(
+                      'div',
+                      { className: 'flex flex-col gap-2' },
+                      React.createElement('p', null, messageContent)
+                    )
+                  )
+                }
+              }
+
+              return null
+            })
+            .filter(Boolean)
+
+          setMessages(uiMessages)
+        } catch (error) {
+          console.error('Error loading chat history:', error)
+        }
+      }
+    }
+
+    loadUserChats()
+  }, [session?.user?.id, selectedModel , guestmode, guestId])
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -143,11 +218,15 @@ export function PromptForm({
           if (res.data?.text) {
             setUploadedPdfFiles(prev => [
               ...prev,
-              { name: fileName, text: res.data.text, url:fileUrl }
+              { name: fileName, text: res.data.text, url: fileUrl }
             ])
 
             // @ts-ignore
-            setUploadedUrls({ name: fileName, text: res.data.text, url:fileUrl })
+            setUploadedUrls({
+              name: fileName,
+              text: res.data.text,
+              url: fileUrl
+            })
           }
         } catch (error) {
           toast.error('Error uploading pdf file.')
@@ -183,7 +262,7 @@ export function PromptForm({
 
   const compressImage = async (file: File) => {
     const options = {
-      maxSizeMB: 0.5, // Compress to a smaller size if necessary
+      maxSizeMB: 0.5, 
       maxWidthOrHeight: 1920,
       useWebWorker: true
     }
@@ -204,7 +283,7 @@ export function PromptForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setLoading(true)
     e.preventDefault()
-
+    const userId = guestmode ? guestId : session?.user?.id
     if (window.innerWidth < 600) {
       e.currentTarget['message']?.blur()
     }
@@ -212,7 +291,7 @@ export function PromptForm({
     const value = input.trim()
     setInput('')
     if (!value && uploadedImages.length === 0) return
-  
+
     const combinedContent = (
       <div className="flex flex-col gap-2">
         <p>{value}</p>
@@ -253,19 +332,27 @@ export function PromptForm({
       </div>
     )
 
-    setMessages(currentMessages => [
-      ...currentMessages,
-      {
-        id: nanoid(),
-        display: <UserMessage>{combinedContent}</UserMessage>
+    const userMessage = {
+      id: nanoid(),
+      display: <UserMessage>{combinedContent}</UserMessage>
+    }
+    if (session || guestmode) {
+      try {
+        await ChatStorage.saveChat(
+          userId,
+          userMessage,
+          selectedModel
+        );
+      } catch (error) {
+        console.error('Error saving chat:', error);
       }
-    ])
+    }
+    setMessages(currentMessages => [...currentMessages, userMessage])
 
     try {
-      // Create the payload with the compressed and encoded images
       const payload = {
         message: value,
-        model: selectedModel, 
+        model: selectedModel,
         images: uploadedImages,
         file: uploadedPdfFiles,
         csv: uploadingCSVFiles
@@ -273,103 +360,193 @@ export function PromptForm({
 
       // Log the JSON payload
       console.log('Sending JSON payload:', JSON.stringify(payload))
-      let responseMessage:any;
+      let responseMessage: any
       switch (selectedModel) {
         case 'claude':
-          const msgiid = nanoid();
-          setMessages(currentMessages => [...currentMessages, {
-            id: msgiid,
-            display: <BotMessagePer content="" />
-          }]);
+          const msgiid = nanoid()
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
+              id: msgiid,
+              display: <BotMessagePer content="" />
+            }
+          ])
           const responseclu = await sendMessageToClaude(
-           value,
-           uploadedImages,
-           uploadedPdfFiles,
-           uploadingCSVFiles,
-           msgiid
-         
+            value,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles,
+            msgiid
           )
-          const responsecluStatic = { id: 1, text: 'Preparing final output...' };
-       
+          const responsecluStatic = { id: 1, text: 'Preparing final output...' }
+
           setTimeout(async () => {
-          
-            setMessages(currentMessages => 
-              currentMessages.map(msg => 
-                msg?.id === msgiid ? responseclu ? responseclu :  responsecluStatic : msg
+            setMessages(currentMessages =>
+              currentMessages.map(msg =>
+                msg?.id === msgiid
+                  ? responseclu
+                    ? responseclu
+                    : responsecluStatic
+                  : msg
               )
-            );
-          }, 2400);
-       
+            )
+          }, 2400)
+          if (responseclu && (session || guestmode)) {
+            try {
+              await ChatStorage.saveChat(
+                userId,
+                responseclu,
+                selectedModel
+              );
+            } catch (error) {
+              console.error('Error saving claude response:', error);
+            }
+          }
+
           break
-          case 'perplexity':
-            const msgid = nanoid();
-            setMessages(currentMessages => [...currentMessages, {
+        case 'perplexity':
+          const msgid = nanoid()
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
               id: msgid,
               display: <BotMessagePer content="" />
-            }]);
-            const response = await sendMessageToPerplexity(
-              value,  
-              uploadedImages,
-              uploadedPdfFiles,
-              uploadingCSVFiles,
-              msgid
-            );
-            const responsetwo = { id: 1, text: 'Preparing final output...' };
-       
-            setTimeout(async () => {
-            
-              setMessages(currentMessages => 
-                currentMessages.map(msg => 
-                  msg?.id === msgid ? response ? response :  responsetwo : msg
+            }
+          ])
+          const response = await sendMessageToPerplexity(
+            value,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles,
+            msgid
+          )
+          const responsetwo = { id: 1, text: 'Preparing final output...' }
+
+          setTimeout(async () => {
+            setMessages(currentMessages =>
+              currentMessages.map(msg =>
+                msg?.id === msgid ? (response ? response : responsetwo) : msg
+              )
+            )
+          }, 2400)
+          if (response &&  ( session || guestmode )) {
+            {
+                await ChatStorage.saveChat(
+                  userId,
+                  response,
+                  selectedModel
                 )
-              );
-            }, 2400);
-         
-            break;
-            
-                 
+            }
+          }
+
+          break
+
         case 'gpto1':
-                
-        responseMessage = await sendMessageToOpenAIo1(
-          value,
-          model,
-          uploadedImages,
-          uploadedPdfFiles, 
-          uploadingCSVFiles
-        )
-  
-            break
-          
+          const msgido1 = nanoid()
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
+              id: msgido1,
+              display: <BotMessagePer content="" />
+            }
+          ])
+          const responseo1 = await sendMessageToOpenAIo1(
+            value,
+            model,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles,
+            msgido1
+          )
+          const responsetwoo1 = { id: 1, text: 'Preparing final output...' }
+
+          setTimeout(async () => {
+            setMessages(currentMessages =>
+              currentMessages.map(msg =>
+                msg?.id === msgido1 ? (responseo1 ? responseo1 : responsetwoo1) : msg
+              )
+            )
+          }, 2400)
+          if (responseo1 &&   ( session || guestmode )) {
+            {
+            await ChatStorage.saveChat(
+                  userId,
+                  responseo1,
+                  selectedModel
+                )
+            }
+          }
+          break
+
         case 'arxiv':
-                
-      responseMessage = await submitUserMessage(
-        value,
-        model,
-        uploadedImages,
-        uploadedPdfFiles, 
-        uploadingCSVFiles
-      )
+          responseMessage = await submitUserMessage(
+            value,
+            model,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles
+          )
+          if (responseMessage &&   ( session || guestmode )) {
+            {
+            
+                await ChatStorage.saveChat(
+                  userId,
+                  responseMessage,
+                  selectedModel
+                )
+            }
+          }
 
           break
         default:
-      
-      responseMessage = await sendMessageToOpenAI(
-        value,
-        model,
-        uploadedImages,
-        uploadedPdfFiles, 
-        uploadingCSVFiles
-      )} 
+          const msgiid4o = nanoid()
+          setMessages(currentMessages => [
+            ...currentMessages,
+            {
+              id: msgiid4o,
+              display: <BotMessagePer content="" />
+            }
+          ])
+          const response4o = await sendMessageToOpenAI(
+            value,
+            model,
+            uploadedImages,
+            uploadedPdfFiles,
+            uploadingCSVFiles,
+            msgiid4o
+          )
+
+          const responsetwo4o = { id: 1, text: 'Preparing final output...' }
+
+          setTimeout(async () => {
+            setMessages(currentMessages =>
+              currentMessages.map(msg =>
+                msg?.id === msgiid4o ? (response4o ? response4o : responsetwo4o) : msg
+              )
+            )
+          }, 2400)
+          if (responseMessage &&  ( session || guestmode )) {
+            {
+             
+                await ChatStorage.saveChat(
+                  userId,
+                  responseMessage,
+                  selectedModel
+                )
+            }
+          }
+      }
+
       console.log(uploadingCSVFiles)
       setUploadedImages([])
       setUploadedPdfFiles([])
       setUploadingCSVFiles([])
       setMessages(currentMessages => [...currentMessages, responseMessage])
       setTimeout(() => {
-        setLoading(false);
-      }, 5000); 
+        setLoading(false)
+      }, 5000)
     } catch (error) {
-      setLoading(false);
+      setLoading(false)
       console.error('Error submitting message:', error)
       toast(
         <div className="text-red-600">
@@ -386,7 +563,6 @@ export function PromptForm({
         </div>
       )
     }
- 
   }
 
   const canUploadAttachments = [
@@ -397,6 +573,12 @@ export function PromptForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit}>
+      <DialogLogin
+        loginAzure={loginAzure}
+        session={session}
+        setGuestmode={setGuestmode}
+      />
+
       <input
         type="file"
         className="hidden"
@@ -407,25 +589,28 @@ export function PromptForm({
         multiple
       />
       <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
-      {selectedModel !== "perplexity" &&selectedModel !== 'arxiv' && selectedModel!=="gpto1" && canUploadAttachments && (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span
-        className="size-8 cursor-pointer rounded-full bg-background p-0 flex items-center justify-center"
-        onClick={() => {
-          if (isUploading) {
-            return;
-          }
-          fileRef.current?.click();
-        }}
-      >
-        <IconPlus />
-        <span className="sr-only">New Chat</span>
-      </span>
-    </TooltipTrigger>
-    <TooltipContent>Add Attachments</TooltipContent>
-  </Tooltip>
-)}
+        {selectedModel !== 'perplexity' &&
+          selectedModel !== 'arxiv' &&
+          selectedModel !== 'gpto1' &&
+          canUploadAttachments && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className="size-8 cursor-pointer rounded-full bg-background p-0 flex items-center justify-center"
+                  onClick={() => {
+                    if (isUploading) {
+                      return
+                    }
+                    fileRef.current?.click()
+                  }}
+                >
+                  <IconPlus />
+                  <span className="sr-only">New Chat</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Add Attachments</TooltipContent>
+            </Tooltip>
+          )}
 
         <div className="relative mt-2 mb-2 ml-2 flex justify-center space-x-2">
           {uploadedImages.length > 0 && (
@@ -467,8 +652,10 @@ export function PromptForm({
                       prevFile.filter((_, i) => i !== index)
                     )
 
-                    if(uploadedPdfFiles && uploadedPdfFiles.length >= 1) {
-                      setUploadedUrls(uploadedPdfFiles[uploadedPdfFiles.length - 1])
+                    if (uploadedPdfFiles && uploadedPdfFiles.length >= 1) {
+                      setUploadedUrls(
+                        uploadedPdfFiles[uploadedPdfFiles.length - 1]
+                      )
                     }
                     setUploadedUrls(null)
                   }}
@@ -480,10 +667,7 @@ export function PromptForm({
             )
           })}
           {isUploading && (
-              <div
-              className="relative h-12 w-12 flex items-center justify-center bg-black mx-1 rounded-lg "
-            >
-              
+            <div className="relative h-12 w-12 flex items-center justify-center bg-black mx-1 rounded-lg ">
               <Button
                 variant="outline"
                 size="icon"
@@ -500,7 +684,6 @@ export function PromptForm({
                 key={index}
                 className="relative h-12 w-12 flex items-center justify-center bg-black mx-1 rounded-lg "
               >
-                
                 <Button
                   variant="outline"
                   size="icon"
@@ -547,40 +730,65 @@ export function PromptForm({
           </TooltipTrigger>
           <TooltipContent>Send message</TooltipContent>
         </Tooltip>
-      {uploadedPdfUrls && <PdfReader pdfUrls={uploadedPdfUrls} />}
+        {uploadedPdfUrls && <PdfReader pdfUrls={uploadedPdfUrls} />}
       </div>
       <div className="flex space-x-2 mx-8 my-3">
-          <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('openai')}>
-            <div className="flex flex-col items-center">
-              <Brain className="h-3 w-3 mb-1 " />
-              <span className="text-xs">ChatGPT</span>
-            </div>
-          </Button>
-          <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'gpto1' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"  onClick={() => handleModelSelect('gpto1')}>
-            <div className="flex flex-col items-center">
-              <Brain className="h-3 w-3 mb-1 " />
-              <span className="text-xs">GPT o1</span>
-            </div>
-          </Button>
-          <Button     type="button" className={`flex-1 py-8 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('claude')}>
-            <div className="flex flex-col items-center">
-              <Bot className="h-3 w-3 mb-1" />
-              <span className="text-xs">Claude</span>
-            </div>
-          </Button>
-          <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'perplexity' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('perplexity')}>
-            <div className="flex flex-col items-center">
-              <Lightbulb className="h-3 w-3 mb-1" />
-              <span className="text-xs">Perplexity</span>
-            </div>
-          </Button>
-          <Button    type="button" className={`flex-1 py-8 ${selectedModel === 'arxiv' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}  variant="outline"   onClick={() => handleModelSelect('arxiv')}>
-            <div className="flex flex-col items-center">
-              <FileText className="h-3 w-3 mb-1" />
-              <span className="text-xs">arXiv</span>
-            </div>
-          </Button>
-        </div>
+        <Button
+          type="button"
+          className={`flex-1 py-8 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
+          variant="outline"
+          onClick={() => handleModelSelect('openai')}
+        >
+          <div className="flex flex-col items-center">
+            <Brain className="h-3 w-3 mb-1 " />
+            <span className="text-xs">ChatGPT</span>
+          </div>
+        </Button>
+        <Button
+          type="button"
+          className={`flex-1 py-8 ${selectedModel === 'gpto1' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
+          variant="outline"
+          onClick={() => handleModelSelect('gpto1')}
+        >
+          <div className="flex flex-col items-center">
+            <Brain className="h-3 w-3 mb-1 " />
+            <span className="text-xs">GPT o1</span>
+          </div>
+        </Button>
+        <Button
+          type="button"
+          className={`flex-1 py-8 ${selectedModel === 'claude' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
+          variant="outline"
+          onClick={() => handleModelSelect('claude')}
+        >
+          <div className="flex flex-col items-center">
+            <Bot className="h-3 w-3 mb-1" />
+            <span className="text-xs">Claude</span>
+          </div>
+        </Button>
+        <Button
+          type="button"
+          className={`flex-1 py-8 ${selectedModel === 'perplexity' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
+          variant="outline"
+          onClick={() => handleModelSelect('perplexity')}
+        >
+          <div className="flex flex-col items-center">
+            <Lightbulb className="h-3 w-3 mb-1" />
+            <span className="text-xs">Perplexity</span>
+          </div>
+        </Button>
+        <Button
+          type="button"
+          className={`flex-1 py-8 ${selectedModel === 'arxiv' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
+          variant="outline"
+          onClick={() => handleModelSelect('arxiv')}
+        >
+          <div className="flex flex-col items-center">
+            <FileText className="h-3 w-3 mb-1" />
+            <span className="text-xs">arXiv</span>
+          </div>
+        </Button>
+      </div>
       <p className="text-xs text-gray-300 ml-4 transition-opacity duration-300 ease-in-out text-center mt-2">
         {'Models may make mistakes, always validate your work'}
       </p>
@@ -594,4 +802,24 @@ export function PromptForm({
       </div>
     </form>
   )
+}
+
+const modalStyles: React.CSSProperties = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 100000
+}
+
+const modalContentStyles: React.CSSProperties = {
+  backgroundColor: '#fff',
+  padding: '20px',
+  borderRadius: '8px',
+  textAlign: 'center'
 }

@@ -674,7 +674,7 @@ export const AI = createAI<AIState, UIState>({
   onGetUIState: async () => {
     'use server'
 
-    const session = await auth()
+    const session:any = true
 
     if (session && session.user) {
       const aiState = getAIState() as Chat

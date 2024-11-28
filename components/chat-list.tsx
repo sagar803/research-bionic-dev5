@@ -11,6 +11,7 @@ export interface ChatList {
 
 export function ChatList({ messages, session, isShared }: ChatList) {
   console.log('messages',messages);
+  
   return messages.length ? (
     <div className="relative mx-auto max-w-2xl grid auto-rows-max gap-8 px-4">
       {!isShared && !session ? (
