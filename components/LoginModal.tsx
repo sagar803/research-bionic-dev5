@@ -49,7 +49,7 @@ export function DialogLogin({ loginAzure, session , setGuestmode , guestmode }: 
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <Button type="button" className="mx-auto" onClick={() => loginAzure()}>
-            Login with Azure
+          Login with your Diamond email
           </Button>
           <Button
             type="button"
