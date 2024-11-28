@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,17 +11,28 @@ import {
 
 interface DialogLoginProps {
   loginAzure: () => void;
-  session: any; 
-  setGuestmode?: any;
+  session: any;
+  setGuestmode?: (mode: boolean) => void;
+  guestmode?: boolean;
 }
 
-export function DialogLogin({ loginAzure, session , setGuestmode }: DialogLoginProps) {
+export function DialogLogin({ loginAzure, session , setGuestmode , guestmode }: DialogLoginProps) {
   const [isOpen, setIsOpen] = useState(false);
+
   useEffect(() => {
     if (!session) {
       setIsOpen(true);
     }
   }, [session]);
+
+  // Update guest mode and immediately close the modal
+  const handleGuestMode = useCallback(() => {
+    if (setGuestmode) {
+      setGuestmode(true); 
+   
+    }
+    setIsOpen(false); 
+  }, [setGuestmode , guestmode]);
 
   if (session) {
     return null;
@@ -44,10 +55,7 @@ export function DialogLogin({ loginAzure, session , setGuestmode }: DialogLoginP
             type="button"
             variant="ghost"
             className="mx-auto"
-            onClick={() =>{
-              setIsOpen(false);
-              setGuestmode(true);
-            }} 
+            onClick={handleGuestMode} 
           >
             Continue as Guest
           </Button>

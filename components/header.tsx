@@ -62,11 +62,11 @@ export function Header() {
           <UserOrLogin />
         </React.Suspense>
       </div>
-      {session ? 
+      {/* {session ? 
       <Button type="button" className="ml-auto" onClick={()=>logoutAzure()}>
         Logout
       </Button> :
-      <DialogLogin loginAzure={loginAzure} session={session}/>}
+      <DialogLogin loginAzure={loginAzure} session={session}/>} */}
    
     </header>
   );
