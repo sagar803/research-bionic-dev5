@@ -9,10 +9,11 @@ export default async function sendMessageToOpenAIo1(
     images?: string[],
     pdfFiles: { name: string; text: string }[],
     csvFiles: { name: string; text: string }[],
-    msgido1:any
+    msgido1:any,
+    lastmessage?: string[]
 ) {
     'use server'
-
+    console.log('3434', lastmessage)
     const messageId = msgido1;
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
@@ -41,6 +42,16 @@ Query: ${content}`;
             text: assistantInstructions
         });
     }
+
+    if (content) {
+        const previousChat = lastmessage ? `my topic is this: ${lastmessage}` : ''
+    
+        userMessage.content.push({
+          type: 'text',
+          text: `${assistantInstructions}${previousChat}
+      my query: ${content}`
+        })
+      }
 
     // Process images
     if (images?.length > 0) {

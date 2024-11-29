@@ -8,7 +8,8 @@ export default async function sendMessageToPerplexity(
     images?: string[],
     pdfFiles: { name: string; text: string }[],
     csvFiles: { name: string; text: string }[],
-    msgid?:any
+    msgid?:any,
+    lastmessage?: string[]
   ) {
     'use server'
 
@@ -52,11 +53,13 @@ export default async function sendMessageToPerplexity(
 
     // Regular content handling remains the same
     if (content) {
+      const previousChat = lastmessage ? `my topic is this: ${lastmessage}` : ''
+  
       messages.push({
-        type: "text",
-        text: content
-      });
-    }
+        type: 'text',
+        text: `${previousChat}
+    my query: ${content}`
+      })}
   
     // PDF and CSV handling remains the same
     if (pdfFiles.length > 0) {

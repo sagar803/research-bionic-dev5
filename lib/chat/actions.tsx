@@ -32,7 +32,6 @@ import { ArxivResponse } from '@/components/ArxivResponse'
 import { runAsyncFnWithoutBlocking, sleep, nanoid } from '@/lib/utils'
 import { saveChat } from '@/app/actions'
 import { Chat, Message } from '@/lib/types'
-import { auth } from '@/auth'
 import axios from 'axios'
 import { error } from 'console'
 import sendMessageToPerplexity from './actionPerplexity'
@@ -177,7 +176,8 @@ async function submitUserMessage(
   model: string,
   images?: string[],
   pdfFiles: { name: string; text: string }[],
-  csvFiles: { name: string; text: string }[]
+  csvFiles: { name: string; text: string }[],
+  lastmessage?: string[]
 ) {
   'use server'
 
@@ -185,8 +185,15 @@ async function submitUserMessage(
 
   const messageContent: MessageContent[] = []
 
+
   if (content) {
-    messageContent.push({ type: 'text', text: content })
+    const previousChat = lastmessage ? `my topic is this: ${lastmessage}` : ''
+
+    messageContent.push({
+      type: 'text',
+      text: `${previousChat}
+  my query: ${content}`
+    })
   }
 
   if (pdfFiles && pdfFiles.length > 0) {
@@ -690,7 +697,7 @@ export const AI = createAI<AIState, UIState>({
   onSetAIState: async ({ state }) => {
     'use server'
 
-    const session = await auth()
+    const session:any = true
 
     if (session && session.user) {
       const { chatId, messages } = state

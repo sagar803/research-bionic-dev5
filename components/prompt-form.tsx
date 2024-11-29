@@ -54,8 +54,9 @@ export function PromptForm({
   const { data: session, status }: any = useSession()
   const [messages, setMessages] = useUIState<typeof AI>()
   const [uploadedImages, setUploadedImages] = React.useState<string[]>([])
-  const [guestmode, setGuestmode] = React.useState(false);
-
+  const [guestmode, setGuestmode] = React.useState(false)
+  const [messagesLast, setMessagesLast] =React.useState<string[]>([]);
+  const [chatUpdateTrigger, setChatUpdateTrigger] = React.useState(0);
 
   const [guestId, setGuestId] = React.useState<string>('')
   const loginAzure = () => {
@@ -84,25 +85,79 @@ export function PromptForm({
     }
   }, [guestmode])
 
+
   React.useEffect(() => {
     const loadUserChats = async () => {
       const userId = guestmode ? guestId : session?.user?.id
       if (userId && selectedModel) {
-        try {
+      
           const chatHistory = await ChatStorage.getModelChat(
             userId,
             selectedModel
-          )
-
+          ) || []; 
+          if (!Array.isArray(chatHistory)) {
+            setMessagesLast([]);
+            setMessages([]);
+            return;
+          }
+          try {
+            const extractedMessages = [];
+            
+            if (chatHistory) {
+              for (const msg of chatHistory || []) {
+                try {
+                  if (!msg) continue;
+                  
+                  const userMessage = msg?.display?.props?.children?.props?.children?.[0]?.props?.children;
+                  if (userMessage) {
+                    extractedMessages.push(userMessage);
+                    continue;
+                  }
+          
+                  const botMessage = msg?.display?.props?.content;
+                  if (botMessage) {
+                    extractedMessages.push(botMessage);
+                    continue;
+                  }
+                } catch (messageError) {
+                  continue;
+                }
+              }
+          
+              const lastMessages = extractedMessages?.slice(-4);
+              console.log("Last 4 messages:", lastMessages);
+          
+              let totalChars = 0;
+              const limitedMessages = [];
+              
+              for (const msg of lastMessages) {
+                if (msg && totalChars + msg.length <= 200) {
+                  limitedMessages.push(msg);
+                  totalChars += msg.length;
+                } else {
+                  break;
+                }
+              }
+          
+              setMessagesLast(limitedMessages || []);
+            } else {
+              setMessagesLast([]);
+            }
+          } catch (error) {
+            setMessagesLast([]);
+            console.log("error in extract" , error)
+          }
+          try {
+            if(chatHistory){
           const uiMessages: any = chatHistory
             ?.map(msg => {
-              // For bot messages
-              if (msg.display?.props?.content) {
+             
+              if (msg?.display?.props?.content) {
                 return {
-                  id: msg.id,
+                  id: msg?.id,
                   display: React.createElement(BotMessagePer, {
-                    content: msg.display.props.content,
-                    resultlinks: msg.display.props.resultlinks || []
+                    content: msg?.display?.props.content,
+                    resultlinks: msg?.display?.props.resultlinks || []
                   })
                 }
               }
@@ -130,7 +185,7 @@ export function PromptForm({
             })
             .filter(Boolean)
 
-          setMessages(uiMessages)
+          setMessages(uiMessages)}
         } catch (error) {
           console.error('Error loading chat history:', error)
         }
@@ -138,7 +193,7 @@ export function PromptForm({
     }
 
     loadUserChats()
-  }, [session?.user?.id, selectedModel, guestmode, guestId])
+  }, [session?.user?.id, selectedModel, guestmode, guestId  , chatUpdateTrigger])
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -280,7 +335,6 @@ export function PromptForm({
   const handleModelSelect = (modelName: string) => {
     setSelectedModel(modelName)
   }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setLoading(true)
     e.preventDefault()
@@ -373,7 +427,8 @@ export function PromptForm({
             uploadedImages,
             uploadedPdfFiles,
             uploadingCSVFiles,
-            msgiid
+            msgiid,
+            messagesLast
           )
           const responsecluStatic = { id: 1, text: 'Preparing final output...' }
 
@@ -391,6 +446,7 @@ export function PromptForm({
           if (responseclu && (session || guestmode)) {
             try {
               await ChatStorage.saveChat(userId, responseclu, selectedModel)
+              setChatUpdateTrigger(prev => prev + 1); 
             } catch (error) {
               console.error('Error saving claude response:', error)
             }
@@ -411,7 +467,8 @@ export function PromptForm({
             uploadedImages,
             uploadedPdfFiles,
             uploadingCSVFiles,
-            msgid
+            msgid,
+            messagesLast
           )
           const responsetwo = { id: 1, text: 'Preparing final output...' }
 
@@ -425,6 +482,7 @@ export function PromptForm({
           if (response && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, response, selectedModel)
+              setChatUpdateTrigger(prev => prev + 1); 
             }
           }
 
@@ -441,11 +499,11 @@ export function PromptForm({
           ])
           const responseo1 = await sendMessageToOpenAIo1(
             value,
-            model,
             uploadedImages,
             uploadedPdfFiles,
             uploadingCSVFiles,
-            msgido1
+            msgido1,
+            messagesLast
           )
           const responsetwoo1 = { id: 1, text: 'Preparing final output...' }
 
@@ -463,6 +521,7 @@ export function PromptForm({
           if (responseo1 && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseo1, selectedModel)
+              setChatUpdateTrigger(prev => prev + 1); 
             }
           }
           break
@@ -473,11 +532,13 @@ export function PromptForm({
             model,
             uploadedImages,
             uploadedPdfFiles,
-            uploadingCSVFiles
+            uploadingCSVFiles,
+            messagesLast
           )
           if (responseMessage && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseMessage, selectedModel)
+              setChatUpdateTrigger(prev => prev + 1); 
             }
           }
 
@@ -491,13 +552,14 @@ export function PromptForm({
               display: <BotMessagePer content="" />
             }
           ])
+
           const response4o = await sendMessageToOpenAI(
             value,
-            model,
             uploadedImages,
             uploadedPdfFiles,
             uploadingCSVFiles,
-            msgiid4o
+            msgiid4o,
+            messagesLast
           )
 
           const responsetwo4o = { id: 1, text: 'Preparing final output...' }
@@ -516,6 +578,7 @@ export function PromptForm({
           if (response4o && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseMessage, selectedModel)
+              setChatUpdateTrigger(prev => prev + 1); 
             }
           }
       }

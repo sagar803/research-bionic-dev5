@@ -7,78 +7,89 @@ export default async function sendMessageToClaude(
   images?: string[],
   pdfFiles: { name: string; text: string }[] = [],
   csvFiles: { name: string; text: string }[] = [],
-  msgiid:any
+  msgiid: any,
+  lastmessage?: string[]
 ) {
   'use server'
 
-  const messages = [];
+  const messages = []
+
+
 
   if (images?.length > 0) {
     for (const imageData of images) {
       try {
-        let mediaType = 'image/jpeg'; // default
-        const match = imageData.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/);
-        
+        let mediaType = 'image/jpeg' // default
+        const match = imageData.match(
+          /^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,/
+        )
+
         if (match) {
-          const detectedType = match[1].toLowerCase();
+          const detectedType = match[1].toLowerCase()
           // Only allow supported formats
-          if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(detectedType)) {
-            mediaType = detectedType;
+          if (
+            ['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(
+              detectedType
+            )
+          ) {
+            mediaType = detectedType
           }
         }
         // Remove the "data:image/jpeg;base64," prefix if present
-        const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
-        
+        const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '')
+
         messages.push({
-          type: "image",
+          type: 'image',
           source: {
-            type: "base64",
+            type: 'base64',
             media_type: mediaType,
             data: base64Data
           }
-        });
+        })
       } catch (error) {
-        console.error(`Error processing image:`, error);
+        console.error(`Error processing image:`, error)
         messages.push({
-          type: "text",
+          type: 'text',
           text: `Failed to process an image`
-        });
+        })
       }
     }
   }
 
   // Add main text content
-  if (content) {
-    messages.push({
-      type: "text",
-      text: content
-    });
-  }
 
+  if (content) {
+    const previousChat = lastmessage ? `my topic is this: ${lastmessage}` : ''
+
+    messages.push({
+      type: 'text',
+      text: `${previousChat}
+  my query: ${content}`
+    })
+  }
   // Add PDF content if present
   if (pdfFiles.length > 0) {
-    const pdfContent = pdfFiles.map(pdf => 
-      `Document: ${pdf.name}\n${pdf.text}\n---`
-    ).join('\n\n');
-    
+    const pdfContent = pdfFiles
+      .map(pdf => `Document: ${pdf.name}\n${pdf.text}\n---`)
+      .join('\n\n')
+
     messages.push({
-      type: "text",
+      type: 'text',
       text: `PDF Contents:\n${pdfContent}`
-    });
+    })
   }
 
   // Add CSV content if present
   if (csvFiles.length > 0) {
-    const csvContent = csvFiles.map(csv => 
-      `File: ${csv.name}\n${csv.text}\n---`
-    ).join('\n\n');
-    
-    messages.push({
-      type: "text",
-      text: `CSV Data:\n${csvContent}`
-    });
-  }
+    const csvContent = csvFiles
+      .map(csv => `File: ${csv.name}\n${csv.text}\n---`)
+      .join('\n\n')
 
+    messages.push({
+      type: 'text',
+      text: `CSV Data:\n${csvContent}`
+    })
+  }
 
   const systemPrompt = `
   You are an research paper assistant. You can help users find and discuss research papers from various scientific fields.
@@ -88,7 +99,7 @@ export default async function sendMessageToClaude(
   - Computer Science: Artificial Intelligence, Computation and Language...
   - Mathematics: Algebraic Geometry, Algebraic Topology...
   - Physics: Accelerator Physics, Applied Physics...
-  Besides that, you can also chat with users and provide information about scientific research.`;
+  Besides that, you can also chat with users and provide information about scientific research.`
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -107,7 +118,7 @@ export default async function sendMessageToClaude(
           },
           {
             role: 'user',
-            content: messages 
+            content: messages
           }
         ],
         max_tokens: 4096,
@@ -116,28 +127,38 @@ export default async function sendMessageToClaude(
     })
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
+      const errorText = await response.text()
+      console.error(
+        `API Error: ${response.status} ${response.statusText}`,
+        errorText
+      )
+      throw new Error(
+        `Failed to get response: ${response.status} ${response.statusText}`
+      )
     }
 
     const result = await response.json()
-    
-    if (!result.content || result.content.length === 0 || typeof result.content[0].text !== 'string') {
-      console.error('Invalid response format from Claude API:', result);
-      throw new Error('Invalid response format from Claude API');
+
+    if (
+      !result.content ||
+      result.content.length === 0 ||
+      typeof result.content[0].text !== 'string'
+    ) {
+      console.error('Invalid response format from Claude API:', result)
+      throw new Error('Invalid response format from Claude API')
     }
 
     return {
       id: nanoid(),
       display: <BotMessage content={result.content[0].text} />
     }
-
   } catch (error) {
     console.error('Error:', error)
     return {
       id: nanoid(),
-      display: <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again or contact support if the issue persists." />
+      display: (
+        <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again or contact support if the issue persists." />
+      )
     }
   }
 }
