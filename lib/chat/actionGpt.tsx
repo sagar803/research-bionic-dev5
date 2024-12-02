@@ -142,6 +142,7 @@ export default async function sendMessageToOpenAI(
           content={messageContent}
           resultlinks={[]}
           key={messageId}
+          isLoading={false}
         />
       )
     }

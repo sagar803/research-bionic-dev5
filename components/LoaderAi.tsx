@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 
-interface LoaderProps {
-    messages: string[];
-    interval?: number; 
-}
 
 const messages = [
     "Gathering data...",
     "Preparing final output...",
 ];
-const interval = 2400;
 
-const LoaderAi: React.FC<LoaderProps> = () => {
+interface LoaderProps {
+    intervalTime?:any
+  }
+const LoaderAi: React.FC<LoaderProps> = ({intervalTime}) => {
+    const interval = 2400;
     const [currentMessage, setCurrentMessage] = useState<string>('');
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [charIndex, setCharIndex] = useState<number>(0);

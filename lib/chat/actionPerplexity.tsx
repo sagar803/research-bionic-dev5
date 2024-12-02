@@ -148,6 +148,7 @@ export default async function sendMessageToPerplexity(
         content={messageContent}
         resultlinks={citations}
         key={msgid} 
+        isLoading={false}
       />
     };
 

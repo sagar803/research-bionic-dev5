@@ -13,7 +13,6 @@ export default async function sendMessageToOpenAIo1(
     lastmessage?: string[]
 ) {
     'use server'
-    console.log('3434', lastmessage)
     const messageId = msgido1;
     const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY
@@ -119,7 +118,7 @@ Query: ${content}`;
 
     try {
         const response = await openai.chat.completions.create({
-            model: "o1-mini",
+            model: "o1-preview",
             messages: messages,
             max_completion_tokens: 4096,
  
@@ -129,12 +128,15 @@ Query: ${content}`;
         
         return {
             id: messageId,
-            display: <BotMessagePer 
-                content={messageContent}
-                resultlinks={[]} 
-                key={messageId} 
-            />
-        };
+            display: (
+              <BotMessagePer
+              content={messageContent} 
+                resultlinks={[]}
+                key={messageId}
+                isLoading={false}
+              />
+            )
+          }
 
     } catch (error) {
         console.error('OpenAI API Error:', error);

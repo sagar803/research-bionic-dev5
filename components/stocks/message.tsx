@@ -37,77 +37,39 @@ export function UserMessage({ children }: { children: React.ReactNode }) {
   )
 }
 
-const LoadingDots = () => {
-  const [dots, setDots] = useState('');
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return <span>{dots}</span>;
-};
 
 export const LoadingMessage = () => (
 
     <div>AI is thinking</div>
 
 );
-const messagesdata: string[] = [
-  "Unpacking your request...",
-  "Connecting to my sources...",
-  "Gathering data...",
-  "Analyzing patterns...",
-  "Evaluating sources for credibility...",
-  "Synthesizing findings...",
-  "Preparing final output..."
-];
-function displayLoaderMessages(messagesdata: string[], interval: number = 1000): void {
-  let index: number = 0;
 
-  const loaderInterval = setInterval(() => {
-      console.log(messagesdata[index]); // Replace with DOM manipulation if needed
-      index++;
-
-      if (index >= messagesdata?.length) {
-          clearInterval(loaderInterval);
-          console.log("Loading complete!"); // Optional: Final completion message
-      }
-  }, interval);
-}
-
-// const [isLoading, setIsLoading] = useState(true);
-
-// useEffect(() => {
-//   const timer = setTimeout(() => {
-//     setIsLoading(false);
-//   }, 3000); // 3 seconds delay
-
-//   return () => clearTimeout(timer); 
-// }, []);
 
 export function BotMessagePer({
   content,
   className,
   resultlinks,
+  isLoading,
+  interval
   
 
 }: {
   content: string | StreamableValue<string>
   className?: string
-  resultlinks?: string[] // Array of URLs
+  resultlinks?: string[]
+  isLoading?:any
+  interval?:any
 
 }) {
-  const [isLoading, setIsLoading] = useState(content ? false : true);
   const [isArrayLoading, setIsArrayLoading] = useState(true); 
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsArrayLoading(false), 2000); 
+    const timer = setTimeout(() =>{
+      setIsArrayLoading(false);
+    }, 4000); 
     return () => clearTimeout(timer); 
   }, []);
+
 
   const text = useStreamableText(content)
   const parseReferences = (text: any, links?: string[]) => {
@@ -166,12 +128,14 @@ export function BotMessagePer({
       
       {/* Render Markdown Content */}
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        {isLoading ? (
-        <div><LoaderAi messages={[]}/></div>
+        {(isLoading) ? (
+        <div>
+          <LoaderAi intervalTime={interval}/></div>
         ) : (
           <>
           {isArrayLoading ?  <div className="" style={{ fontSize: "15px", whiteSpace: "nowrap" , color: "gray", fontStyle: "italic" }}>Preparing final output...</div>:
       <div className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
+
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -221,6 +185,7 @@ export function BotMessagePer({
       </div>}
       </>)}
       </div>
+   
     </div>
   )
 }
@@ -229,17 +194,19 @@ export function BotMessagePer({
 export function BotMessage({
   content,
   className,
-  resultlinks
+  resultlinks,
+  isLoading
 }: {
   content: string | StreamableValue<string>
   className?: string
   resultlinks?: string[]
+  isLoading?:any
 }) {
   const text = useStreamableText(content)
   const [isArrayLoading, setIsArrayLoading] = useState(true); 
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsArrayLoading(false), 2000); 
+    const timer = setTimeout(() => setIsArrayLoading(false), 4000); 
     return () => clearTimeout(timer); 
   }, []);
   return (

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { BotMessage } from '@/components/stocks'
+import { BotMessagePer } from '@/components/stocks/message';
 import { nanoid } from 'nanoid'
 
 export default async function sendMessageToClaude(
@@ -147,15 +148,21 @@ export default async function sendMessageToClaude(
       console.error('Invalid response format from Claude API:', result)
       throw new Error('Invalid response format from Claude API')
     }
-
     return {
-      id: nanoid(),
-      display: <BotMessage content={result.content[0].text} />
+      id: msgiid,
+      display: (
+        <BotMessagePer
+        content={result.content[0].text} 
+          resultlinks={[]}
+          key={messageId}
+          isLoading={false}
+        />
+      )
     }
   } catch (error) {
     console.error('Error:', error)
     return {
-      id: nanoid(),
+      id: msgiid,
       display: (
         <BotMessage content="I apologize, but I'm having trouble processing your request. Please try again or contact support if the issue persists." />
       )

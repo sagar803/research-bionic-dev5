@@ -23,7 +23,7 @@ import { nanoid } from 'nanoid'
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { toast } from 'sonner'
-import { BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
+import { BotMessagePer, BotMessagePerLoader, SpinnerMessage, UserMessage } from './stocks/message'
 import { useGlobalState } from '@/context/GlobalContext'
 import { Card } from './ui/card'
 import PdfReader from './PdfReader'
@@ -419,7 +419,7 @@ export function PromptForm({
             ...currentMessages,
             {
               id: msgiid,
-              display: <BotMessagePer content="" />
+              display: <BotMessagePer content="" isLoading={true}/>
             }
           ])
           const responseclu = await sendMessageToClaude(
@@ -430,15 +430,12 @@ export function PromptForm({
             msgiid,
             messagesLast
           )
-          const responsecluStatic = { id: 1, text: 'Preparing final output...' }
 
           setTimeout(async () => {
             setMessages(currentMessages =>
               currentMessages.map(msg =>
                 msg?.id === msgiid
                   ? responseclu
-                    ? responseclu
-                    : responsecluStatic
                   : msg
               )
             )
@@ -459,7 +456,7 @@ export function PromptForm({
             ...currentMessages,
             {
               id: msgid,
-              display: <BotMessagePer content="" />
+              display: <BotMessagePer content="" isLoading={true}/>
             }
           ])
           const response = await sendMessageToPerplexity(
@@ -494,7 +491,7 @@ export function PromptForm({
             ...currentMessages,
             {
               id: msgido1,
-              display: <BotMessagePer content="" />
+              display: <BotMessagePer content="" isLoading={true} interval={2700}/>
             }
           ])
           const responseo1 = await sendMessageToOpenAIo1(
@@ -505,19 +502,15 @@ export function PromptForm({
             msgido1,
             messagesLast
           )
-          const responsetwoo1 = { id: 1, text: 'Preparing final output...' }
-
-          setTimeout(async () => {
+    
             setMessages(currentMessages =>
               currentMessages.map(msg =>
                 msg?.id === msgido1
                   ? responseo1
-                    ? responseo1
-                    : responsetwoo1
                   : msg
               )
             )
-          }, 2400)
+      
           if (responseo1 && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseo1, selectedModel)
@@ -545,14 +538,15 @@ export function PromptForm({
           break
         default:
           const msgiid4o = nanoid()
+     
           setMessages(currentMessages => [
             ...currentMessages,
             {
               id: msgiid4o,
-              display: <BotMessagePer content="" />
+              display: <BotMessagePer content="" isLoading={true}/>
             }
           ])
-
+     
           const response4o = await sendMessageToOpenAI(
             value,
             uploadedImages,
@@ -560,21 +554,16 @@ export function PromptForm({
             uploadingCSVFiles,
             msgiid4o,
             messagesLast
-          )
-
-          const responsetwo4o = { id: 1, text: 'Preparing final output...' }
-
+          )      
           setTimeout(async () => {
-            setMessages(currentMessages =>
-              currentMessages.map(msg =>
-                msg?.id === msgiid4o
-                  ? response4o
-                    ? response4o
-                    : responsetwo4o
-                  : msg
-              )
+          setMessages(currentMessages =>
+            currentMessages.map(msg =>
+              msg?.id === msgiid4o
+                ? response4o : msg
             )
-          }, 2400)
+          )
+        }, 2400)
+       
           if (response4o && (session || guestmode)) {
             {
               await ChatStorage.saveChat(userId, responseMessage, selectedModel)
