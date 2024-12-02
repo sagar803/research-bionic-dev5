@@ -154,7 +154,7 @@ export default async function sendMessageToClaude(
         <BotMessagePer
         content={result.content[0].text} 
           resultlinks={[]}
-          key={messageId}
+          key={msgiid}
           isLoading={false}
         />
       )
