@@ -538,40 +538,47 @@ export function PromptForm({
           }
 
           break
-        case 'perplexity':
-          const msgid = nanoid()
-          setMessages(currentMessages => [
-            ...currentMessages,
-            {
-              id: msgid,
-              display: <BotMessagePer content="" isLoading={true}/>
-            }
-          ])
-          const response = await sendMessageToPerplexity(
-            value,
-            uploadedImages,
-            uploadedPdfFiles,
-            uploadingCSVFiles,
-            msgid,
-            messagesLast
-          )
-          const responsetwo = { id: 1, text: 'Preparing final output...' }
-
-          setTimeout(async () => {
+          case 'perplexity':
+            const msgid = nanoid()
+            
+            // Show loading state
+            setMessages(currentMessages => [
+              ...currentMessages,
+              {
+                id: msgid,
+                display: <BotMessagePer content="" isLoading={true} interval={2700} />
+              }
+            ])
+          
+            // Get response
+            const response = await sendMessageToPerplexity(
+              value,
+              uploadedImages,
+              uploadedPdfFiles,
+              uploadingCSVFiles,
+              msgid,
+              messagesLast
+            )
+            
+            // Set fallback response
+            const responsetwo = { id: 1, text: 'Preparing final output...' }
+          
+            // Wait for loader sequence and static message duration
+            await new Promise(resolve => setTimeout(resolve, 4800));
+          
+            // Show final response or fallback
             setMessages(currentMessages =>
               currentMessages.map(msg =>
                 msg?.id === msgid ? (response ? response : responsetwo) : msg
               )
             )
-          }, 2400)
-          if (response && (session || guestmode)) {
-            {
-              await ChatStorage.saveChat(userId, response , currentChatId ? currentChatId :"null")
-              setChatUpdateTrigger(prev => prev + 1); 
+          
+            if (response && (session || guestmode)) {
+              await ChatStorage.saveChat(userId, response, currentChatId ? currentChatId : "null")
+              setChatUpdateTrigger(prev => prev + 1)
             }
-          }
-
-          break
+          
+            break
 
          
           case 'gpto1':
