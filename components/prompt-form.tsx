@@ -668,14 +668,16 @@ export function PromptForm({
         default:
           const msgiid4o = nanoid()
      
+          // Show loading state
           setMessages(currentMessages => [
             ...currentMessages,
             {
               id: msgiid4o,
-              display: <BotMessagePer content="" isLoading={true}/>
+              display: <BotMessagePer content="" isLoading={true} interval={2700} />
             }
-          ])
-     
+          ]);
+          
+          // Get response
           const response4o = await sendMessageToOpenAI(
             value,
             uploadedImages,
@@ -683,23 +685,22 @@ export function PromptForm({
             uploadingCSVFiles,
             msgiid4o,
             messagesLast
-          )      
-          setTimeout(async () => {
+          );
+          
+          // Wait for loader sequence and static message duration
+          await new Promise(resolve => setTimeout(resolve, 4800));
+          
+          // Show final response
           setMessages(currentMessages =>
             currentMessages.map(msg =>
-              msg?.id === msgiid4o
-                ? response4o : msg
+              msg?.id === msgiid4o ? response4o : msg
             )
-          )
-       
-        }, 2400)
-       
-        if (response4o && (session || guestmode)) {
-          {
-            await ChatStorage.saveChat(userId, response4o , currentChatId ? currentChatId :"null")
-            setChatUpdateTrigger(prev => prev + 1); 
+          );
+          
+          if (response4o && (session || guestmode)) {
+            await ChatStorage.saveChat(userId, response4o, currentChatId ? currentChatId : "null");
+            setChatUpdateTrigger(prev => prev + 1);
           }
-        }
       }
 
       console.log(uploadingCSVFiles)
