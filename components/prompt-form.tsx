@@ -23,7 +23,7 @@ import { nanoid } from 'nanoid'
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { toast } from 'sonner'
-import { BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
+import { BotMessage, BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
 import { useGlobalState } from '@/context/GlobalContext'
 import { Card } from './ui/card'
 import PdfReader from './PdfReader'
@@ -618,60 +618,31 @@ export function PromptForm({
             }
             break;
           
-          case 'arxiv':
-            const arxivId = nanoid();
+            case 'arxiv':
+              const msgidar = nanoid();
+             
             
-            // Show initial loading state
-            setMessages(currentMessages => [
-              ...currentMessages,
-              {
-                id: arxivId,
-                display: <BotMessagePer content="" isLoading={true} />
-              }
-            ]);
-          
-            // Get response
-            responseMessage = await submitUserMessage(
-              value,
-              model,
-              uploadedImages,
-              uploadedPdfFiles,
-              uploadingCSVFiles,
-              messagesLast
-            );
-          
-            // After 12.4s total, show final response
-            setTimeout(() => {
-              setMessages(currentMessages =>
-                currentMessages.map(msg =>
-                  msg?.id === arxivId ? responseMessage : msg
-                )
-              );
-              
+              responseMessage = await submitUserMessage(
+                value,
+                model,
+                uploadedImages,
+                uploadedPdfFiles,
+                uploadingCSVFiles,
+                messagesLast
+              )
+           
+            
+
               if (responseMessage && (session || guestmode)) {
-                ChatStorage.saveChat(userId, responseMessage, currentChatId ? currentChatId : "null");
-                setChatUpdateTrigger(prev => prev + 1);
+                {
+                  await ChatStorage.saveChat(userId, responseMessage, selectedModel)
+                  setChatUpdateTrigger(prev => prev + 1); 
+                }
               }
-            }, 12400);
-            break;
+    
+              break
 
-        case 'arxiv':
-          responseMessage = await submitUserMessage(
-            value,
-            model,
-            uploadedImages,
-            uploadedPdfFiles,
-            uploadingCSVFiles,
-            messagesLast
-          )
-          if (responseMessage && (session || guestmode)) {
-            {
-              await ChatStorage.saveChat(userId, responseMessage  ,currentChatId ? currentChatId :"null")
-              setChatUpdateTrigger(prev => prev + 1); 
-            }
-          }
-
-          break
+  
         default:
           const msgiid4o = nanoid()
      
