@@ -597,7 +597,7 @@ export function PromptForm({
             );
           
             // After total delay show response
-            await new Promise(resolve => setTimeout(resolve, 6400));
+            await new Promise(resolve => setTimeout(resolve, 4000));
             
             setMessages(currentMessages =>
               currentMessages.map(msg =>
