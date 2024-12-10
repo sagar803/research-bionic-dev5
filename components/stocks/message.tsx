@@ -50,7 +50,9 @@ export function BotMessagePer({
   className,
   resultlinks,
   isLoading,
-  interval
+  interval,
+  isStatic,
+  messageId
   
 
 }: {
@@ -59,16 +61,23 @@ export function BotMessagePer({
   resultlinks?: string[]
   isLoading?:any
   interval?:any
+  isStatic?:any
+  messageId?:any
 
 }) {
-  const [isArrayLoading, setIsArrayLoading] = useState(true); 
+  const [showLoader, setShowLoader] = useState(true);
+  const [showStatic, setShowStatic] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() =>{
-      setIsArrayLoading(false);
-    }, 4000); 
-    return () => clearTimeout(timer); 
-  }, []);
+    if (isLoading) {
+      const loaderTimer = setTimeout(() => {
+        setShowLoader(false);
+        setShowStatic(true);
+      }, 4800); 
+
+      return () => clearTimeout(loaderTimer);
+    }
+  }, [isLoading]);
 
 
   const text = useStreamableText(content)
@@ -128,12 +137,14 @@ export function BotMessagePer({
       
       {/* Render Markdown Content */}
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        {(isLoading) ? (
-        <div>
-          <LoaderAi intervalTime={interval}/></div>
-        ) : (
-          <>
-          {isArrayLoading ?  <div className="" style={{ fontSize: "15px", whiteSpace: "nowrap" , color: "gray", fontStyle: "italic" }}>Preparing final output...</div>:
+      {isLoading && showLoader && <LoaderAi intervalTime={interval} />}
+        
+        {isLoading && showStatic && (
+          <div style={{ fontSize: "15px", whiteSpace: "nowrap", color: "gray", fontStyle: "italic" }}>
+            Preparing final output...
+          </div>
+        )}
+          {!isLoading && content && (
       <div className=" prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
 
         <ReactMarkdown
@@ -182,8 +193,8 @@ export function BotMessagePer({
             </div>
           </div>
         )}
-      </div>}
-      </>)}
+      </div>
+          )}
       </div>
    
     </div>

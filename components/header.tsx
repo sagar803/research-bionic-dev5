@@ -1,73 +1,53 @@
-/* eslint-disable @next/next/no-img-element */
-"use client"
+"use client";
 import * as React from "react";
 import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
-import { IconSeparator } from "@/components/ui/icons";
+import { useSession, signIn } from "next-auth/react";
 import { UserMenu } from "@/components/user-menu";
-import { SidebarMobile } from "./sidebar-mobile";
-import { SidebarToggle } from "./sidebar-toggle";
-import { ChatHistory } from "./chat-history";
-import { signOut , useSession , signIn } from "next-auth/react";
-import { DialogLogin } from "./LoginModal";
-import { Session } from "inspector";
+import ChatSidebar from "./chat-sidebar";
+import { PlusCircle } from "lucide-react";
 
+export function Header() {
+  const { data: session } = useSession();
 
-// const loginAzure =async ()=>{
-//  await signIn('azure-ad')
-// }
-
-async function UserOrLogin() {
-  // const { data: session, status }: any = useSession();
-const session:any = true
   return (
     <>
-      {false? (
-        <>
-          <SidebarMobile>
-            <ChatHistory userId={session.user.id} />
-          </SidebarMobile>
-          <SidebarToggle />
-        </>
-      ) : (
-        <>
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 border-b bg-white/80 backdrop-blur-xl">
+        <div className="flex h-16 items-center justify-between px-4 sm:px-12">
           <Link href="https://research.bionicdiamond.com/" rel="nofollow">
             <img
-              className="size-14 object-contain"
+              className="h-10 w-auto object-contain"
               src="https://gen.bionicdiamond.com/images/gemini.png"
               alt="gemini logo"
             />
           </Link>
-        </>
-      )}
-      {/* <div className="flex items-center">
-        <IconSeparator className="size-6 text-zinc-200" />
-        {session?.user ? <UserMenu user={session.user} /> : <div></div>}
-      </div> */}
-    </>
-  );
-}
 
-export function Header() {
-  // const { data: session, status }: any = useSession();
-  // const logoutAzure = async()=>{
-  //   if(session)
-  //   await signOut();
-  // }
-  return (
-    <header className="sticky top-0 z-50 flex items-center justify-between w-full h-16 px-12 bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
-      <div className="flex items-center">
-        <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
-          <UserOrLogin />
-        </React.Suspense>
-      </div>
-      {/* {session ? 
-      <Button type="button" className="ml-auto" onClick={()=>logoutAzure()}>
-        Logout
-      </Button> :
-      <DialogLogin loginAzure={loginAzure} session={session}/>} */}
-   
-    </header>
+          <div className="flex items-center gap-4">
+            {session?.user ? (
+              <UserMenu user={session.user} />
+            ) : (
+              <button
+                onClick={() => signIn("azure-ad")}
+                className="rounded-xl border bg-white px-4 py-1.5 text-black shadow-sm transition hover:bg-black hover:text-white"
+              >
+                Login with your Diamond email
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar */}
+      {session && (
+        <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 flex flex-col bg-white border-r border-gray-200 z-30">
+          <div className="flex-1 overflow-y-auto">
+            <ChatSidebar />
+          </div>
+        </aside>
+      )}
+
+      {/* Main Content Spacer */}
+      {session && <div className="w-72 flex-none" />}
+    </>
   );
 }

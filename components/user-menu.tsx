@@ -1,3 +1,4 @@
+"use client"
 import { type Session } from '@/lib/types'
 
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { signOut } from '@/auth'
+import { signOut , useSession , signIn } from "next-auth/react";
 
 export interface UserMenuProps {
   user: Session['user']
@@ -38,7 +39,7 @@ export function UserMenu({ user }: UserMenuProps) {
           <DropdownMenuSeparator />
           <form
             action={async () => {
-              'use server'
+         
               await signOut()
             }}
           >

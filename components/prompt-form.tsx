@@ -23,13 +23,14 @@ import { nanoid } from 'nanoid'
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 import { toast } from 'sonner'
-import { BotMessagePer, BotMessagePerLoader, SpinnerMessage, UserMessage } from './stocks/message'
+import { BotMessagePer, SpinnerMessage, UserMessage } from './stocks/message'
 import { useGlobalState } from '@/context/GlobalContext'
 import { Card } from './ui/card'
 import PdfReader from './PdfReader'
 import { ChatStorage } from '@/lib/chatStorage'
 import { signIn, useSession } from 'next-auth/react'
 import { DialogLogin } from './LoginModal'
+import { useChat } from '@/lib/hooks/use-generate-chatid'
 
 export function PromptForm({
   input,
@@ -57,7 +58,7 @@ export function PromptForm({
   const [guestmode, setGuestmode] = React.useState(false)
   const [messagesLast, setMessagesLast] =React.useState<string[]>([]);
   const [chatUpdateTrigger, setChatUpdateTrigger] = React.useState(0);
-
+  const { generateNewChatId , setCurrentChatId , currentChatId  , setUpdateSiebar , updateSiebar} = useChat();
   const [guestId, setGuestId] = React.useState<string>('')
   const loginAzure = () => {
     signIn('azure-ad')
@@ -86,114 +87,201 @@ export function PromptForm({
   }, [guestmode])
 
 
-  React.useEffect(() => {
-    const loadUserChats = async () => {
-      const userId = guestmode ? guestId : session?.user?.id
-      if (userId && selectedModel) {
+  // React.useEffect(() => {
+  //   const loadUserChats = async () => {
+  //     const userId = guestmode ? guestId : session?.user?.id
+  //     if (userId && selectedModel) {
       
-          const chatHistory = await ChatStorage.getModelChat(
-            userId,
-            selectedModel
-          ) || []; 
-          if (!Array.isArray(chatHistory)) {
-            setMessagesLast([]);
-            setMessages([]);
-            return;
-          }
-          try {
-            const extractedMessages = [];
+  //         const chatHistory = await ChatStorage.getModelChat(
+  //           userId,
+  //           selectedModel
+  //         ) || []; 
+  //         if (!Array.isArray(chatHistory)) {
+  //           setMessagesLast([]);
+  //           setMessages([]);
+  //           return;
+  //         }
+  //         try {
+  //           const extractedMessages = [];
             
-            if (chatHistory) {
-              for (const msg of chatHistory || []) {
-                try {
-                  if (!msg) continue;
+  //           if (chatHistory) {
+  //             for (const msg of chatHistory || []) {
+  //               try {
+  //                 if (!msg) continue;
                   
-                  const userMessage = msg?.display?.props?.children?.props?.children?.[0]?.props?.children;
-                  if (userMessage) {
-                    extractedMessages.push(userMessage);
-                    continue;
-                  }
+  //                 const userMessage = msg?.display?.props?.children?.props?.children?.[0]?.props?.children;
+  //                 if (userMessage) {
+  //                   extractedMessages.push(userMessage);
+  //                   continue;
+  //                 }
           
-                  const botMessage = msg?.display?.props?.content;
-                  if (botMessage) {
-                    extractedMessages.push(botMessage);
-                    continue;
-                  }
-                } catch (messageError) {
-                  continue;
-                }
-              }
+  //                 const botMessage = msg?.display?.props?.content;
+  //                 if (botMessage) {
+  //                   extractedMessages.push(botMessage);
+  //                   continue;
+  //                 }
+  //               } catch (messageError) {
+  //                 continue;
+  //               }
+  //             }
           
-              const lastMessages = extractedMessages?.slice(-4);
-              console.log("Last 4 messages:", lastMessages);
+  //             const lastMessages = extractedMessages?.slice(-4);
+  //             console.log("Last 4 messages:", lastMessages);
           
-              let totalChars = 0;
-              const limitedMessages = [];
+  //             let totalChars = 0;
+  //             const limitedMessages = [];
               
-              for (const msg of lastMessages) {
-                if (msg && totalChars + msg.length <= 200) {
-                  limitedMessages.push(msg);
-                  totalChars += msg.length;
-                } else {
-                  break;
-                }
-              }
+  //             for (const msg of lastMessages) {
+  //               if (msg && totalChars + msg.length <= 200) {
+  //                 limitedMessages.push(msg);
+  //                 totalChars += msg.length;
+  //               } else {
+  //                 break;
+  //               }
+  //             }
           
-              setMessagesLast(limitedMessages || []);
-            } else {
-              setMessagesLast([]);
-            }
-          } catch (error) {
-            setMessagesLast([]);
-            console.log("error in extract" , error)
-          }
-          try {
-            if(chatHistory){
-          const uiMessages: any = chatHistory
-            ?.map(msg => {
+  //             setMessagesLast(limitedMessages || []);
+  //           } else {
+  //             setMessagesLast([]);
+  //           }
+  //         } catch (error) {
+  //           setMessagesLast([]);
+  //           console.log("error in extract" , error)
+  //         }
+  //         try {
+  //           if(chatHistory){
+  //         const uiMessages: any = chatHistory
+  //           ?.map(msg => {
              
-              if (msg?.display?.props?.content) {
-                return {
-                  id: msg?.id,
-                  display: React.createElement(BotMessagePer, {
-                    content: msg?.display?.props.content,
-                    resultlinks: msg?.display?.props.resultlinks || []
-                  })
-                }
-              }
+  //             if (msg?.display?.props?.content) {
+  //               return {
+  //                 id: msg?.id,
+  //                 display: React.createElement(BotMessagePer, {
+  //                   content: msg?.display?.props.content,
+  //                   resultlinks: msg?.display?.props.resultlinks || []
+  //                 })
+  //               }
+  //             }
 
-              // For user messages
-              const messageContent =
-                msg.display?.props?.children?.props?.children?.[0]?.props
-                  ?.children
-              if (messageContent) {
-                return {
-                  id: msg.id,
-                  display: React.createElement(
-                    UserMessage,
-                    null,
-                    React.createElement(
-                      'div',
-                      { className: 'flex flex-col gap-2' },
-                      React.createElement('p', null, messageContent)
-                    )
-                  )
-                }
-              }
+  //             // For user messages
+  //             const messageContent =
+  //               msg.display?.props?.children?.props?.children?.[0]?.props
+  //                 ?.children
+  //             if (messageContent) {
+  //               return {
+  //                 id: msg.id,
+  //                 display: React.createElement(
+  //                   UserMessage,
+  //                   null,
+  //                   React.createElement(
+  //                     'div',
+  //                     { className: 'flex flex-col gap-2' },
+  //                     React.createElement('p', null, messageContent)
+  //                   )
+  //                 )
+  //               }
+  //             }
 
-              return null
-            })
-            .filter(Boolean)
+  //             return null
+  //           })
+  //           .filter(Boolean)
 
-          setMessages(uiMessages)}
-        } catch (error) {
-          console.error('Error loading chat history:', error)
+  //         setMessages(uiMessages)}
+  //       } catch (error) {
+  //         console.error('Error loading chat history:', error)
+  //       }
+  //     }
+  //   }
+
+  //   loadUserChats()
+  // }, [session?.user?.id, selectedModel, guestmode, guestId  , chatUpdateTrigger])
+
+  React.useEffect(() => {
+    const loadChatMessages = async () => {
+      try {
+        const userId = guestmode ? guestId : session?.user?.id;
+        if (!userId || !currentChatId) return;
+  
+  
+        const chatMessages = await ChatStorage.getChatMessages(userId, currentChatId);
+        setUpdateSiebar(!updateSiebar)
+        if (!chatMessages?.length) {
+          setMessages([]);
+          setMessagesLast([]);
+          return;
         }
+  
+        // Process messages for UI
+        const uiMessages:any = chatMessages.map(msg => {
+          // For bot messages
+          if (msg?.display?.props?.content) {
+            return {
+              id: msg.id,
+              display: React.createElement(BotMessagePer, {
+                content: msg.display.props.content,
+                resultlinks: msg.display.props.resultlinks || []
+              })
+            };
+          }
+  
+          // For user messages
+          const messageContent = msg?.display?.props?.children?.props?.children?.[0]?.props?.children;
+          if (messageContent) {
+            return {
+              id: msg.id,
+              display: React.createElement(
+                UserMessage,
+                null,
+                React.createElement(
+                  'div',
+                  { className: 'flex flex-col gap-2' },
+                  React.createElement('p', null, messageContent)
+                )
+              )
+            };
+          }
+  
+          return null;
+        }).filter(Boolean);
+  
+        setMessages(uiMessages);
+  
+        // Process last 4 messages for context
+        const extractedMessages = chatMessages
+          .map(msg => {
+            const userMessage = msg?.display?.props?.children?.props?.children?.[0]?.props?.children;
+            const botMessage = msg?.display?.props?.content;
+            return userMessage || botMessage;
+          })
+          .filter(Boolean);
+  
+        const lastMessages = extractedMessages.slice(-4);
+        
+        // Limit context to 200 characters
+        let totalChars = 0;
+        const limitedMessages = [];
+        for (const msg of lastMessages) {
+          if (msg && totalChars + msg.length <= 200) {
+            limitedMessages.push(msg);
+            totalChars += msg.length;
+          } else {
+            break;
+          }
+        }
+  
+        setMessagesLast(limitedMessages);
+  
+      } catch (error) {
+        console.error('Error loading chat messages:', error);
+        setMessages([]);
+        setMessagesLast([]);
+      } finally {
+  
       }
-    }
-
-    loadUserChats()
-  }, [session?.user?.id, selectedModel, guestmode, guestId  , chatUpdateTrigger])
+    };
+  
+    loadChatMessages();
+  }, [currentChatId, session?.user?.id, guestmode, guestId]);
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -393,7 +481,7 @@ export function PromptForm({
     }
     if (session || guestmode) {
       try {
-        await ChatStorage.saveChat(userId, userMessage, selectedModel)
+        await ChatStorage.saveChat(userId, userMessage ,  currentChatId ? currentChatId :"null")
       } catch (error) {
         console.error('Error saving chat:', error)
       }
@@ -442,7 +530,7 @@ export function PromptForm({
           }, 2400)
           if (responseclu && (session || guestmode)) {
             try {
-              await ChatStorage.saveChat(userId, responseclu, selectedModel)
+              await ChatStorage.saveChat(userId, responseclu, currentChatId ? currentChatId :"null")
               setChatUpdateTrigger(prev => prev + 1); 
             } catch (error) {
               console.error('Error saving claude response:', error)
@@ -478,46 +566,87 @@ export function PromptForm({
           }, 2400)
           if (response && (session || guestmode)) {
             {
-              await ChatStorage.saveChat(userId, response, selectedModel)
+              await ChatStorage.saveChat(userId, response , currentChatId ? currentChatId :"null")
               setChatUpdateTrigger(prev => prev + 1); 
             }
           }
 
           break
 
-        case 'gpto1':
-          const msgido1 = nanoid()
-          setMessages(currentMessages => [
-            ...currentMessages,
-            {
-              id: msgido1,
-              display: <BotMessagePer content="" isLoading={true} interval={2700}/>
-            }
-          ])
-          const responseo1 = await sendMessageToOpenAIo1(
-            value,
-            uploadedImages,
-            uploadedPdfFiles,
-            uploadingCSVFiles,
-            msgido1,
-            messagesLast
-          )
-    
+         
+          case 'gpto1':
+            const msgido1 = nanoid();
+            
+            // Show loading state
+            setMessages(currentMessages => [
+              ...currentMessages,
+              {
+                id: msgido1,
+                display: <BotMessagePer content="" isLoading={true} interval={2700} />
+              }
+            ]);
+          
+            // Get response
+            const responseo1 = await sendMessageToOpenAIo1(
+              value,
+              uploadedImages,
+              uploadedPdfFiles,
+              uploadingCSVFiles,
+              msgido1,
+              messagesLast
+            );
+          
+            // After total delay show response
+            await new Promise(resolve => setTimeout(resolve, 6400));
+            
             setMessages(currentMessages =>
               currentMessages.map(msg =>
-                msg?.id === msgido1
-                  ? responseo1
-                  : msg
+                msg?.id === msgido1 ? responseo1 : msg
               )
-            )
-      
-          if (responseo1 && (session || guestmode)) {
-            {
-              await ChatStorage.saveChat(userId, responseo1, selectedModel)
-              setChatUpdateTrigger(prev => prev + 1); 
+            );
+          
+            if (responseo1 && (session || guestmode)) {
+              await ChatStorage.saveChat(userId, responseo1, currentChatId ? currentChatId : "null");
+              setChatUpdateTrigger(prev => prev + 1);
             }
-          }
-          break
+            break;
+          
+          case 'arxiv':
+            const arxivId = nanoid();
+            
+            // Show initial loading state
+            setMessages(currentMessages => [
+              ...currentMessages,
+              {
+                id: arxivId,
+                display: <BotMessagePer content="" isLoading={true} />
+              }
+            ]);
+          
+            // Get response
+            responseMessage = await submitUserMessage(
+              value,
+              model,
+              uploadedImages,
+              uploadedPdfFiles,
+              uploadingCSVFiles,
+              messagesLast
+            );
+          
+            // After 12.4s total, show final response
+            setTimeout(() => {
+              setMessages(currentMessages =>
+                currentMessages.map(msg =>
+                  msg?.id === arxivId ? responseMessage : msg
+                )
+              );
+              
+              if (responseMessage && (session || guestmode)) {
+                ChatStorage.saveChat(userId, responseMessage, currentChatId ? currentChatId : "null");
+                setChatUpdateTrigger(prev => prev + 1);
+              }
+            }, 12400);
+            break;
 
         case 'arxiv':
           responseMessage = await submitUserMessage(
@@ -530,7 +659,7 @@ export function PromptForm({
           )
           if (responseMessage && (session || guestmode)) {
             {
-              await ChatStorage.saveChat(userId, responseMessage, selectedModel)
+              await ChatStorage.saveChat(userId, responseMessage  ,currentChatId ? currentChatId :"null")
               setChatUpdateTrigger(prev => prev + 1); 
             }
           }
@@ -562,14 +691,15 @@ export function PromptForm({
                 ? response4o : msg
             )
           )
+       
         }, 2400)
        
-          if (response4o && (session || guestmode)) {
-            {
-              await ChatStorage.saveChat(userId, responseMessage, selectedModel)
-              setChatUpdateTrigger(prev => prev + 1); 
-            }
+        if (response4o && (session || guestmode)) {
+          {
+            await ChatStorage.saveChat(userId, response4o , currentChatId ? currentChatId :"null")
+            setChatUpdateTrigger(prev => prev + 1); 
           }
+        }
       }
 
       console.log(uploadingCSVFiles)
@@ -742,8 +872,10 @@ export function PromptForm({
             tabIndex={0}
             onKeyDown={onKeyDown}
             placeholder="Message Bionic Research"
-            className="flex-1 min-h-[60px] bg-transparent placeholder:text-zinc-900 resize-none px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
-            autoFocus
+            className="flex-1 min-h-[60px] max-h-[200px] bg-transparent placeholder:text-zinc-900 
+             resize-none px-4 py-[1.3rem] focus-within:outline-none sm:text-sm w-full
+             overflow-y-auto scrollbar scrollbar-thumb-zinc-300 scrollbar-track-transparent"
+              autoFocus
             spellCheck={false}
             autoComplete="off"
             autoCorrect="off"
@@ -839,24 +971,4 @@ export function PromptForm({
       </form>
     </>
   )
-}
-
-const modalStyles: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 100000
-}
-
-const modalContentStyles: React.CSSProperties = {
-  backgroundColor: '#fff',
-  padding: '20px',
-  borderRadius: '8px',
-  textAlign: 'center'
 }
