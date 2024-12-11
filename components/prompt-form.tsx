@@ -31,6 +31,8 @@ import { ChatStorage } from '@/lib/chatStorage'
 import { signIn, useSession } from 'next-auth/react'
 import { DialogLogin } from './LoginModal'
 import { useChat } from '@/lib/hooks/use-generate-chatid'
+import { ModelSelector } from './model-selector'
+import ModelSelectors from './ModelSelector'
 
 export function PromptForm({
   input,
@@ -734,11 +736,12 @@ export function PromptForm({
           multiple
         />
         <div className="relative flex w-full items-center bg-zinc-100 px-6 sm:rounded-full sm:px-6">
-          {selectedModel !== 'perplexity' &&
+      
+              <>
+              {selectedModel !== 'perplexity' &&
             selectedModel !== 'arxiv' &&
             selectedModel !== 'gpto1' &&
-            canUploadAttachments && (
-              <Tooltip>
+            canUploadAttachments && (    <Tooltip>
                 <TooltipTrigger asChild>
                   <span
                     className="size-8 cursor-pointer rounded-full bg-background p-0 flex items-center justify-center"
@@ -754,8 +757,15 @@ export function PromptForm({
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>Add Attachments</TooltipContent>
-              </Tooltip>
-            )}
+              </Tooltip> )}
+                <ModelSelectors
+                selectedModel={selectedModel} 
+                onModelSelect={handleModelSelect}
+              />
+              </>
+           
+              
+           
 
           <div className="relative mt-2 mb-2 ml-2 flex justify-center space-x-2">
             {uploadedImages.length > 0 && (
@@ -865,21 +875,22 @@ export function PromptForm({
           />
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                type="submit"
-                size="icon"
-                disabled={input === '' && uploadedImages.length === 0}
-                className="bg-transparent shadow-none text-zinc-950 rounded-full hover:bg-zinc-200"
-              >
-                <IconArrowElbow />
-                <span className="sr-only">Send message</span>
-              </Button>
+            <Button
+              type="submit"
+              size="icon"
+              disabled={input === '' && uploadedImages.length === 0}
+              className="bg-black shadow-none hover:bg-gray-800 rounded-full"
+              style={{background: "black"}}
+            >
+              <IconArrowElbow />
+              <span className="sr-only">Send message</span>
+            </Button>
             </TooltipTrigger>
             <TooltipContent>Send message</TooltipContent>
           </Tooltip>
           {uploadedPdfUrls && <PdfReader pdfUrls={uploadedPdfUrls} />}
         </div>
-        <div className="flex space-x-2 mx-8 my-3">
+        {/* <div className="flex space-x-2 mx-8 my-3">
           <Button
             type="button"
             className={`flex-1 py-8 ${selectedModel === 'openai' ? 'bg-blue-100 hover:bg-blue-200' : ''}`}
@@ -935,7 +946,7 @@ export function PromptForm({
               <span className="text-xs">arXiv</span>
             </div>
           </Button>
-        </div>
+        </div> */}
         <p className="text-xs text-gray-300 ml-4 transition-opacity duration-300 ease-in-out text-center mt-2">
           {'Models may make mistakes, always validate your work'}
         </p>
