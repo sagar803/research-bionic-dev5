@@ -38,7 +38,7 @@ export function ChatPanel({
   const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [showContent, setShowContent] = React.useState(true)
-  const { selectedPdfUrl, setSelectedPdfUrl } = useGlobalState()
+  const { selectedPdfUrl, setSelectedPdfUrl , setIsOpenSidebar , isOpenSidebar} = useGlobalState()
 
   const exampleMessages = [
     {
@@ -67,7 +67,7 @@ export function ChatPanel({
 
   return (
     <div
-      className={`transition duration-500 ${selectedPdfUrl ? '-translate-x-1/4' : 'translate-x-0'} fixed inset-x-0  bottom-0 w-full duration-300 ease-in-out ${session ? " ml-[8%]" : "" }  dark:from-10%`}
+      className={`transition duration-500 ${selectedPdfUrl ? '-translate-x-1/4' : 'translate-x-0'} fixed inset-x-0  bottom-0 w-full duration-300 ease-in-out ${(session && isOpenSidebar) ? " ml-[8%]" : "" }  dark:from-10%`}
     >
       <ButtonScrollToBottom
         isAtBottom={isAtBottom}

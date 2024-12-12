@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { ChatStorage } from '@/lib/chatStorage';
-import { MoreHorizontal, PlusCircle, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, MessageSquare, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/lib/hooks/use-generate-chatid';
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useGlobalState } from '@/context/GlobalContext';
+import { IconSidebar } from './ui/icons';
 
 interface Chat {
   id: string;
@@ -17,22 +19,18 @@ interface ChatGroup {
   [key: string]: Chat[];
 }
 
-
-
-const ChatSidebar: React.FC = ({ 
-
-}) => {
+const ChatSidebar: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { generateNewChatId , setCurrentChatId , currentChatId , updateSiebar } = useChat();
-  const shouldAnimate = 0
+  const { generateNewChatId, setCurrentChatId, currentChatId, updateSiebar } = useChat();
+  const { setIsOpenSidebar , isOpenSidebar } = useGlobalState();
   
   useEffect(() => {
     if (session?.user?.id) {
       loadChats();
     }
-  }, [session?.user?.id , currentChatId , updateSiebar]);
+  }, [session?.user?.id, currentChatId, updateSiebar]);
 
   const loadChats = async () => {
     try {
@@ -70,6 +68,8 @@ const ChatSidebar: React.FC = ({
     }, {});
   };
 
+
+
   const groupedChats = groupChats(chats);
 
   const handleNewChat = () => {
@@ -77,77 +77,84 @@ const ChatSidebar: React.FC = ({
     setCurrentChatId(newId);
   };
 
-  return (
-    <motion.div
-      variants={{
-        initial: {
-          height: 0,
-          opacity: 0
-        },
-        animate: {
-          height: 'auto',
-          opacity: 1
-        }
-      }}
-      initial={shouldAnimate ? 'initial' : undefined}
-      animate={shouldAnimate ? 'animate' : undefined}
-      transition={{
-        duration: 0.25,
-        ease: 'easeIn'
-      }}
-      className="w-72 border-r bg-gray-100 h-full flex flex-col"
-    >
-      <div className="p-4 border-b">
-        <Button 
-          onClick={handleNewChat}
-          className="w-full text-base font-medium py-3 px-4 bg-black text-white hover:bg-gray-900 rounded flex "
-        >
-          <PlusCircle className="mr-2 h-5 w-5" />
-          New chat
-        </Button>
-      </div>
+  const ToggleIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="icon-xl-heavy max-md:hidden"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.85719 3H15.1428C16.2266 2.99999 17.1007 2.99998 17.8086 3.05782C18.5375 3.11737 19.1777 3.24318 19.77 3.54497C20.7108 4.02433 21.4757 4.78924 21.955 5.73005C22.2568 6.32234 22.3826 6.96253 22.4422 7.69138C22.5 8.39925 22.5 9.27339 22.5 10.3572V13.6428C22.5 14.7266 22.5 15.6008 22.4422 16.3086C22.3826 17.0375 22.2568 17.6777 21.955 18.27C21.4757 19.2108 20.7108 19.9757 19.77 20.455C19.1777 20.7568 18.5375 20.8826 17.8086 20.9422C17.1008 21 16.2266 21 15.1428 21H8.85717C7.77339 21 6.89925 21 6.19138 20.9422C5.46253 20.8826 4.82234 20.7568 4.23005 20.455C3.28924 19.9757 2.52433 19.2108 2.04497 18.27C1.74318 17.6777 1.61737 17.0375 1.55782 16.3086C1.49998 15.6007 1.49999 14.7266 1.5 13.6428V10.3572C1.49999 9.27341 1.49998 8.39926 1.55782 7.69138C1.61737 6.96253 1.74318 6.32234 2.04497 5.73005C2.52433 4.78924 3.28924 4.02433 4.23005 3.54497C4.82234 3.24318 5.46253 3.11737 6.19138 3.05782C6.89926 2.99998 7.77341 2.99999 8.85719 3ZM6.35424 5.05118C5.74907 5.10062 5.40138 5.19279 5.13803 5.32698C4.57354 5.6146 4.1146 6.07354 3.82698 6.63803C3.69279 6.90138 3.60062 7.24907 3.55118 7.85424C3.50078 8.47108 3.5 9.26339 3.5 10.4V13.6C3.5 14.7366 3.50078 15.5289 3.55118 16.1458C3.60062 16.7509 3.69279 17.0986 3.82698 17.362C4.1146 17.9265 4.57354 18.3854 5.13803 18.673C5.40138 18.8072 5.74907 18.8994 6.35424 18.9488C6.97108 18.9992 7.76339 19 8.9 19H9.5V5H8.9C7.76339 5 6.97108 5.00078 6.35424 5.05118ZM11.5 5V19H15.1C16.2366 19 17.0289 18.9992 17.6458 18.9488C18.2509 18.8994 18.5986 18.8072 18.862 18.673C19.4265 18.3854 19.8854 17.9265 20.173 17.362C20.3072 17.0986 20.3994 16.7509 20.4488 16.1458C20.4992 15.5289 20.5 14.7366 20.5 13.6V10.4C20.5 9.26339 20.4992 8.47108 20.4488 7.85424C20.3994 7.24907 20.3072 6.90138 20.173 6.63803C19.8854 6.07354 19.4265 5.6146 18.862 5.32698C18.5986 5.19279 18.2509 5.10062 17.6458 5.05118C17.0289 5.00078 16.2366 5 15.1 5H11.5ZM5 8.5C5 7.94772 5.44772 7.5 6 7.5H7C7.55229 7.5 8 7.94772 8 8.5C8 9.05229 7.55229 9.5 7 9.5H6C5.44772 9.5 5 9.05229 5 8.5ZM5 12C5 11.4477 5.44772 11 6 11H7C7.55229 11 8 11.4477 8 12C8 12.5523 7.55229 13 7 13H6C5.44772 13 5 12.5523 5 12Z" fill="currentColor"></path></svg>
+  )
 
-      <div className="flex-1 overflow-auto p-4">
-        {Object.entries(groupedChats).map(([group, groupChats]) => (
-          <div key={group} className="mb-6">
-            <h2 className="text-sm font-medium text-gray-500 mb-2">
-              {group}
-            </h2>
-            <div className="space-y-1">
-              {groupChats.map((chat) => (
-                <div 
-                  key={chat.id} 
-                  className={`group flex items-center ${
-                    currentChatId === chat.id ? 'bg-blue-100' : ''
-                  }`}
-                >
-                  <div 
-                    onClick={() => setCurrentChatId(chat.id)}
-                    className="w-full text-left px-2 py-1.5 text-[15px] font-normal h-auto flex items-center"
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2 text-gray-500" />
-                    {chat?.title}
+  return (
+    <div className="relative h-full">
+      <Button
+        onClick={() => setIsOpenSidebar(!isOpenSidebar)}
+        variant="ghost"
+        size="icon"
+        className="fixed top-20 left-5 z-50 bg-white shadow-md hover:bg-gray-100 h-10 w-10 rounded-full"
+      >
+        { <ToggleIcon/> }
+      </Button>
+      
+      <AnimatePresence>
+        {isOpenSidebar && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 288, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-72 border-r bg-gray-100 h-full flex flex-col  overflow-hidden"
+          >
+            <div className="p-4 mt-16 border-b">
+              <Button 
+                onClick={handleNewChat}
+                className="w-full text-base font-medium py-3 px-4 bg-black text-white hover:bg-gray-900 rounded flex"
+              >
+                <PlusCircle className="mr-2 h-5 w-5" />
+                New chat
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
+              {Object.entries(groupedChats).map(([group, groupChats]) => (
+                <div key={group} className="mb-6">
+                  <h2 className="text-sm font-medium text-gray-500 mb-2">
+                    {group}
+                  </h2>
+                  <div className="space-y-1">
+                    {groupChats.map((chat) => (
+                      <div 
+                        key={chat.id} 
+                        className={`group flex items-center ${
+                          currentChatId === chat.id ? 'bg-blue-100' : ''
+                        }`}
+                      >
+                        <div 
+                          onClick={() => setCurrentChatId(chat.id)}
+                          className="w-full text-left px-2 py-1.5 text-[15px] font-normal h-auto flex items-center cursor-pointer"
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2 text-gray-500" />
+                          {chat?.title}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                        >
+                          <MoreHorizontal className="h-4 w-4 text-gray-600" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                  >
-                    <MoreHorizontal className="h-4 w-4 text-gray-600" />
-                  </Button>
                 </div>
               ))}
-            </div>
-          </div>
-        ))}
 
-        {chats.length === 0 && (
-          <div className="text-center text-gray-500 mt-4">
-            No chats yet
-          </div>
+              {chats.length === 0 && (
+                <div className="text-center text-gray-500 mt-4">
+                  No chats yet
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
-      </div>
-    </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 

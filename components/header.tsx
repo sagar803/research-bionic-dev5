@@ -5,9 +5,11 @@ import { useSession, signIn } from "next-auth/react";
 import { UserMenu } from "@/components/user-menu";
 import ChatSidebar from "./chat-sidebar";
 import { PlusCircle } from "lucide-react";
+import { useGlobalState } from "@/context/GlobalContext";
 
 export function Header() {
   const { data: session } = useSession();
+  const { setIsOpenSidebar , isOpenSidebar } = useGlobalState();
 
   return (
     <>
@@ -39,7 +41,7 @@ export function Header() {
 
       {/* Sidebar */}
       {session && (
-        <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 flex flex-col bg-white border-r border-gray-200 z-30">
+        <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-72 flex flex-col  border-gray-200 z-30">
           <div className="flex-1 overflow-y-auto">
             <ChatSidebar />
           </div>
