@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-export const maxDuration = 295
+export const maxDuration = 60
 
 export const fileIds = [
   // 'file-qnuRYc9XbS8F0p8DkpPzsE5e',

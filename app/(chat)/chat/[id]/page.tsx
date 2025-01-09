@@ -7,7 +7,7 @@ import { Chat } from '@/components/chat'
 import { AI } from '@/lib/chat/actions'
 import { Session } from '@/lib/types'
 import {useGlobalState} from "../../../../context/GlobalContext";
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export interface ChatPageProps {
   params: {
