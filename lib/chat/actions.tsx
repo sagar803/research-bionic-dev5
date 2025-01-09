@@ -311,13 +311,8 @@ async function submitUserMessage(
           categories: z
             .array(z.string())
             .describe('List of subcategories to choose from'),
-          title: z
-            .string()
-            .describe(
-              'The title for the category selection UI (usually the main category name)'
-            )
         }),
-        generate: async function* ({ categories, title }) {
+        generate: async function* ({ categories }) {
           yield (
             <BotCard>
               <CategoryMultiSelect categories={categories} />
@@ -340,7 +335,7 @@ async function submitUserMessage(
                     type: 'tool-call',
                     toolName: 'show_category_selection',
                     toolCallId,
-                    args: { categories, title }
+                    args: { categories }
                   }
                 ]
               },
@@ -352,7 +347,7 @@ async function submitUserMessage(
                     type: 'tool-result',
                     toolName: 'show_category_selection',
                     toolCallId,
-                    result: { categories, title }
+                    result: { categories }
                   }
                 ]
               }
